@@ -8,3 +8,18 @@ export const ERROR_CODES = [
 ] as const;
 
 export type ErrorCode = typeof ERROR_CODES[number];
+
+/**
+ * Error "esperado" que una acción lanza cuando una regla no se cumple.
+ * Ejemplo:  throw new ActionError('TEAM_NAME_TAKEN');
+ * createAction lo convierte en { ok: false, error: { code: 'TEAM_NAME_TAKEN' } }.
+ */
+export class ActionError extends Error {
+    readonly code: ErrorCode;
+
+    constructor(code: ErrorCode) {
+        super(code);
+        this.name = 'ActionError';
+        this.code = code;
+    }
+}
