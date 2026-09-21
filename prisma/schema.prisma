@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  PARTICIPANT
+  JUDGE
+  ORGANIZER
+}
+
+enum ProjectFileKind {
+  PITCH_DECK
+  EXTRA
+  COVER_IMAGE
+}
+
+model User {
+  id             String       @id @default(cuid())
+  name           String?
+  email          String       @unique
+  image          String?
+  role           Role         @default(PARTICIPANT)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  accounts       Account[]
+  ledTeams       Team[]       @relation("TeamLeader")
+  teamMembership TeamMember?
+  evaluations    Evaluation[] @relation("JudgeEvaluations")
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refreshToken      String? @map("refresh_token") @db.Text
+  accessToken       String? @map("access_token") @db.Text
+  expiresAt         Int?    @map("expires_at")
+  tokenType         String? @map("token_type")
+  scope             String?
+  idToken           String? @map("id_token") @db.Text
+  sessionState      String? @map("session_state")
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Team {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  joinCode  String       @unique @map("join_code")
+  leaderId  String       @map("leader_id")
+  createdAt DateTime     @default(now()) @map("created_at")
+  leader    User         @relation("TeamLeader", fields: [leaderId], references: [id])
+  members   TeamMember[]
+  project   Project?
+
+  @@map("teams")
+}
+
+model TeamMember {
+  teamId   String   @map("team_id")
+  userId   String   @unique @map("user_id")
+  joinedAt DateTime @default(now()) @map("joined_at")
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@map("team_members")
+}
+
+model Project {
+  id                 String        @id @default(cuid())
+  teamId             String        @unique @map("team_id")
+  slug               String        @unique
+  title              String
+  summary            String
+  description        String        @db.Text
+  repositoryUrl      String?       @map("repository_url")
+  demoUrl            String?       @map("demo_url")
+  videoUrl           String?       @map("video_url")
+  submittedAt        DateTime?     @map("submitted_at")
+  submissionCount    Int           @default(0) @map("submission_count")
+  isVisibleInGallery Boolean       @default(false) @map("is_visible_in_gallery")
+  isFinalist         Boolean       @default(false) @map("is_finalist")
+  isWinner           Boolean       @default(false) @map("is_winner")
+  winnerTitle        String?       @map("winner_title")
+  team               Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  files              ProjectFile[]
+  evaluations        Evaluation[]
+
+  @@map("projects")
+}
+
+model ProjectFile {
+  id           String          @id @default(cuid())
+  projectId    String          @map("project_id")
+  kind         ProjectFileKind
+  bucket       String
+  storagePath  String          @map("storage_path")
+  originalName String          @map("original_name")
+  contentType  String          @map("content_type")
+  sizeBytes    Int             @map("size_bytes")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  project      Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_files")
+}
+
+model Evaluation {
+  id                String  @id @default(cuid())
+  projectId         String  @map("project_id")
+  judgeId           String  @map("judge_id")
+  innovationScore   Int     @map("innovation_score")
+  technologyScore   Int     @map("technology_score")
+  impactScore       Int     @map("impact_score")
+  presentationScore Int     @map("presentation_score")
+  comment           String? @db.Text
+  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  judge             User    @relation("JudgeEvaluations", fields: [judgeId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, judgeId])
+  @@map("evaluations")
+}
+
+model EventState {
+  id                   Int       @id @default(1)
+  finalistsPublishedAt DateTime? @map("finalists_published_at")
+  resultsPublishedAt   DateTime? @map("results_published_at")
+
+  @@map("event_state")
+}
