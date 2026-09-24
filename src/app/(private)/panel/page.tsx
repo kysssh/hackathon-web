@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { requireUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
@@ -28,7 +30,7 @@ export default async function PanelPage() {
       {team === null ? (
         <div className="mt-4 rounded border p-6 text-center">
           <p>Aún no tienes equipo.</p>
-          <a href="/panel/equipo" className="underline">Crear o unirme a un equipo</a>
+          <Link href="/panel/equipo" className="underline">Crear o unirme a un equipo</Link>
         </div>
       ) : (
         <div className="mt-4 rounded border p-6">
