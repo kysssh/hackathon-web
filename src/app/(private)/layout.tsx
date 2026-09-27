@@ -12,9 +12,9 @@ export default async function PrivateLayout({ children }: { children: ReactNode 
     <div className="min-h-screen flex flex-col">
       <header className="flex items-center justify-between border-b px-6 py-4">
         <nav className="flex items-center gap-4 text-sm">
-          <a href="/panel">Panel</a>
-          {user.role === 'JUDGE' && <a href="/jurado">Jurado</a>}
-          {user.role === 'ORGANIZER' && <a href="/organizacion">Organización</a>}
+          <Link href="/panel">Panel</Link>
+          {user.role === 'JUDGE' && <Link href="/jurado">Jurado</Link>}
+          {user.role === 'ORGANIZER' && <Link href="/organizacion">Organización</Link>}
         </nav>
 
         <div className="flex items-center gap-3 text-sm">
@@ -29,4 +29,6 @@ export default async function PrivateLayout({ children }: { children: ReactNode 
     </div>
   );
 }
+
+
 
