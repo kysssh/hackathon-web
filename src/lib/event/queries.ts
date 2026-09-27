@@ -1,4 +1,6 @@
-import "server-only";
+import 'server-only';
+
+import { db } from '@/lib/db';
 
 export type EventStateDto = {
   finalistsPublishedAt: string | null;
@@ -6,5 +8,11 @@ export type EventStateDto = {
 };
 
 export async function getEventState(): Promise<EventStateDto> {
-  return { finalistsPublishedAt: null, resultsPublishedAt: null };
+  const eventState = await db.eventState.findUnique({ where: { id: 1 } });
+
+  return {
+    finalistsPublishedAt:
+      eventState?.finalistsPublishedAt?.toISOString() ?? null,
+    resultsPublishedAt: eventState?.resultsPublishedAt?.toISOString() ?? null,
+  };
 }
