@@ -1,16 +1,18 @@
 'use client';
 
-// TODO: reemplazar signIn (de next-auth/react) por signInAction cuando BK lo
-// publique en src/lib/auth/actions.ts. La firma pactada es:
-//   signInAction({ provider, next? })
-// Mientras tanto, esto ya cumple la verificación de S1: los botones llaman
-// al proveedor correcto y respetan ?next=.
+import { Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 
-export default function IngresarPage() {
+// Componente interno que consume useSearchParams
+function LoginForm() {
   const params = useSearchParams();
   const next = params.get('next') ?? '/panel';
+
+  // TODO: Reemplazar por signInAction({ provider, next }) cuando esté disponible
+  const handleSignIn = (provider: string) => {
+    signIn(provider, { callbackUrl: next });
+  };
 
   return (
     <div className="mx-auto mt-24 max-w-sm text-center">
@@ -18,19 +20,28 @@ export default function IngresarPage() {
 
       <button
         data-testid="signin-google"
-        className="mb-3 w-full rounded border py-2"
-        onClick={() => signIn('google', { callbackUrl: next })}
+        className="mb-3 w-full rounded border py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+        onClick={() => handleSignIn('google')}
       >
         Continuar con Google
       </button>
 
       <button
         data-testid="signin-github"
-        className="w-full rounded border py-2"
-        onClick={() => signIn('github', { callbackUrl: next })}
+        className="w-full rounded border py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+        onClick={() => handleSignIn('github')}
       >
         Continuar con GitHub
       </button>
     </div>
+  );
+}
+
+// Componente principal envuelto en Suspense (Obligatorio con useSearchParams)
+export default function IngresarPage() {
+  return (
+    <Suspense fallback={<div className="text-center mt-24">Cargando...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
