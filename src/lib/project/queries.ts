@@ -91,7 +91,9 @@ export async function getMyProject(): Promise<ProjectDto | null> {
     repositoryUrl: project.repositoryUrl,
     demoUrl: project.demoUrl,
     videoUrl: project.videoUrl,
-    coverUrl: coverImage?.storagePath ?? null,
+    coverUrl: coverImage
+      ? getPublicStorageUrl(coverImage.bucket, coverImage.storagePath)
+      : null,
     submittedAt: project.submittedAt?.toISOString() ?? null,
     submissionCount: project.submissionCount,
     files: project.files.map((file) => ({
@@ -121,6 +123,17 @@ function getMissingFields(
     ...(project.description.trim() ? [] : ['description']),
     ...(hasPitchDeck ? [] : ['pitchDeck']),
   ];
+}
+
+function getPublicStorageUrl(
+  bucket: string,
+  storagePath: string
+): string | null {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  if (!supabaseUrl) return null;
+
+  const encodedPath = storagePath.split('/').map(encodeURIComponent).join('/');
+  return `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encodedPath}`;
 }
 
 export async function listGalleryProjects(_params: {
