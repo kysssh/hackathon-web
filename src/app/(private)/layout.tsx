@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 
+import { SignOutButton } from '@/components/private/sign-out-button';
 import { requireUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
@@ -20,8 +21,7 @@ export default async function PrivateLayout({ children }: { children: ReactNode 
         <div className="flex items-center gap-3 text-sm">
           <span>{user.name ?? user.email}</span>
           <span className="text-xs text-zinc-500">{user.role}</span>
-          {/* TODO: cambiar por signOutAction cuando BK lo publique en src/lib/auth/actions.ts */}
-          <Link href="/api/auth/signout">Cerrar sesión</Link>
+          <SignOutButton />
         </div>
       </header>
 
@@ -29,6 +29,3 @@ export default async function PrivateLayout({ children }: { children: ReactNode 
     </div>
   );
 }
-
-
-
