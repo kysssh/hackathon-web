@@ -1,4 +1,4 @@
-import { getMyTeam } from '@/components/private/temp-stubs';
+import { getMyTeam } from '@/lib/team/queries';
 import { requireUser } from '@/lib/auth/session';
 
 import { NoTeamForms, TeamCard } from './team-forms';

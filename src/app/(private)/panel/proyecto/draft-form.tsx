@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { useAction } from '@/components/private/hooks/use-action';
-import type { ProjectDto } from '@/components/private/temp-stubs';
+import type { ProjectDto } from '@/lib/queries/dtos';
 import { saveProjectDraftAction } from '@/lib/project/actions';
 
 /**
@@ -89,8 +89,24 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
 
   const summaryLeft = LIMITS.summary - form.summary.length;
 
+  const FIELD_LABELS: Record<string, string> = {
+    title: 'Título',
+    summary: 'Resumen',
+    description: 'Descripción',
+    pitchDeck: 'Pitch deck',
+  };
+
   return (
     <form onSubmit={handleSubmit} data-testid="project-draft-form" className="space-y-5 max-w-2xl">
+      {project && project.missingFields.length > 0 && (
+        <div
+          data-testid="project-missing-fields"
+          className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+        >
+          Todavía falta: {project.missingFields.map((f) => FIELD_LABELS[f] ?? f).join(', ')}.
+        </div>
+      )}
+
       <div>
         <label htmlFor="title" className="text-sm text-zinc-500">Título</label>
         <input

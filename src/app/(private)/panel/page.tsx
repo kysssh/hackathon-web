@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
-import { getMyProject, getMyTeam } from '@/components/private/temp-stubs';
+import { getMyTeam } from '@/lib/team/queries';
+import { getMyProject } from '@/lib/project/queries';
 import { requireUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
@@ -67,7 +68,7 @@ export default async function PanelPage() {
           <ul className="mt-2">
             {team.members.map((m) => (
               <li key={m.userId}>
-                {m.name}
+                {m.name ?? 'Sin nombre'}
                 {m.isLeader ? ' (líder)' : ''}
               </li>
             ))}
@@ -95,4 +96,3 @@ export default async function PanelPage() {
     </div>
   );
 }
-

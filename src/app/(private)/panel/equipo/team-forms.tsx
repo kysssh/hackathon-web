@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { useAction } from '@/components/private/hooks/use-action';
-import type { TeamDto } from '@/components/private/temp-stubs';
+import type { TeamDto } from '@/lib/queries/dtos';
 import { createTeamAction, joinTeamAction } from '@/lib/team/actions';
 
 /**
@@ -157,7 +157,7 @@ export function TeamCard({ team }: { team: TeamDto }) {
       <ul className="mt-4 divide-y" data-testid="team-members">
         {team.members.map((m) => (
           <li key={m.userId} className="flex items-center gap-3 py-2">
-            <span>{m.name}</span>
+            <span>{m.name ?? 'Sin nombre'}</span>
             {m.isLeader && (
               <span className="text-xs rounded bg-zinc-100 px-2 py-0.5">Líder</span>
             )}
