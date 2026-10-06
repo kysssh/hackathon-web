@@ -1,18 +1,17 @@
 'use client';
 
 import { Suspense } from 'react';
-import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 
-// Componente interno que consume useSearchParams
+import { useAction } from '@/components/private/hooks/use-action';
+import { signInAction } from '@/lib/auth/actions';
+
 function LoginForm() {
   const params = useSearchParams();
   const next = params.get('next') ?? '/panel';
+  const { run, pending, error } = useAction(signInAction);
 
-  // TODO: Reemplazar por signInAction({ provider, next }) cuando esté disponible
-  const handleSignIn = (provider: string) => {
-    signIn(provider, { callbackUrl: next });
-  };
+  const handleSignIn = (provider: 'google' | 'github') => run({ provider, next });
 
   return (
     <div className="mx-auto mt-24 max-w-sm text-center">
@@ -20,7 +19,8 @@ function LoginForm() {
 
       <button
         data-testid="signin-google"
-        className="mb-3 w-full rounded border py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+        disabled={pending}
+        className="mb-3 w-full rounded border py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
         onClick={() => handleSignIn('google')}
       >
         Continuar con Google
@@ -28,16 +28,23 @@ function LoginForm() {
 
       <button
         data-testid="signin-github"
-        className="w-full rounded border py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+        disabled={pending}
+        className="w-full rounded border py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
         onClick={() => handleSignIn('github')}
       >
         Continuar con GitHub
       </button>
+
+      {error && (
+        <p role="alert" data-testid="signin-error" className="mt-4 text-sm text-red-600">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
 
-// Componente principal envuelto en Suspense (Obligatorio con useSearchParams)
+// Suspense es obligatorio al usar useSearchParams en un componente de cliente.
 export default function IngresarPage() {
   return (
     <Suspense fallback={<div className="text-center mt-24">Cargando...</div>}>
