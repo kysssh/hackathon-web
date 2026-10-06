@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { useAction } from '@/components/private/hooks/use-action';
-import type { ProjectDto } from '@/components/private/temp-stubs';
+import type { ProjectDto } from '@/lib/queries/dtos';
 import { saveProjectDraftAction } from '@/lib/project/actions';
 
 /**
