@@ -41,3 +41,4 @@ export function useAction<Input, Output>(
 
   return { run, pending, error, fieldErrors };
 }
+
