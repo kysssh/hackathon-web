@@ -1,18 +1,6 @@
-/**
- * STUBS TEMPORALES DE LECTURA — BORRAR ESTE ARCHIVO CUANDO BD PUBLIQUE:
- *   - src/lib/team/queries.ts     → getMyTeam
- *   - src/lib/project/queries.ts  → getMyProject
- *   - src/lib/event/queries.ts    → getEventState
- *
- * Los tipos de abajo son exactamente los DTO de la sección 3.5 del plan.
- * El día que BD publique lo real, la firma y el shape deben quedar IGUALES:
- * solo cambias el import en cada página, nunca el JSX que ya los consume.
- *
- * Import esperado el día del reemplazo:
- *   import { getMyTeam } from '@/lib/team/queries';
- *   import { getMyProject } from '@/lib/project/queries';
- *   import { getEventState } from '@/lib/event/queries';
- */
+
+/*NO USAR ESTE ARCHUVO, POR LO QUE SE VE ESTE CASO ERA UNICAMENTE COMO UN LLENADO HASTA QUE SE SUBIERA LA DATA BASE NO USAR PARA NADA*/
+
 
 export type TeamDto = {
   id: string;
