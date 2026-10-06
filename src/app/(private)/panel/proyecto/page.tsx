@@ -1,4 +1,4 @@
-import { getMyProject } from '@/components/private/temp-stubs';
+import { getMyProject } from '@/lib/project/queries';
 import { requireUser } from '@/lib/auth/session';
 
 import { DraftForm } from './draft-form';
