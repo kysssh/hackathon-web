@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# Plataforma Web del Hackathon
 
-## Getting Started
+Aplicación para gestionar equipos, proyectos, entregas, evaluaciones y una galería pública. Stack: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Auth.js, Prisma 7 y PostgreSQL/Supabase.
 
-First, run the development server:
+## Estado por rol
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Revisión del **6 de octubre de 2026**, basada en el código local y el [plan de roles](PLAN_Roles_Hackathon_v3.md). Incluye cambios locales aún sin commit; implementación no implica validación en producción.
+
+| Rol | Implementado | Pendiente |
+| --- | --- | --- |
+| **BD — Base de datos** | Esquema de 8 tablas, dos migraciones, cliente Prisma, semilla y todas las consultas reales de equipo, proyecto, evento, galería, jurado y organización. | Verificar migración de producción sin fixtures y rendimiento de consultas. |
+| **DP — Despliegue y pruebas** | Proyecto base, ESLint/Prettier, utilidades de acciones, errores, fechas, reloj y entorno; `.env.example`. | Pruebas automatizadas y guion manual: `test/`, `e2e/` y `.github/` solo contienen `.gitkeep`. Confirmar Vercel, dominio, variables de producción y entrega final. |
+| **BK — Backend** | Auth.js con Google/GitHub, adaptador Prisma, roles y membresía real; acciones de crear/unirse a equipo, guardar borrador, autorizar/confirmar/eliminar archivos, enviar proyecto y guardar evaluación, con validaciones y permisos. | Acciones de organización aún devuelven respuestas ficticias. Configurar buckets y validar el flujo completo con OAuth y Storage reales. |
+| **FE — Frontend** | `/ingresar`, layout privado con sesión y roles, `/panel`, creación/unión de equipos y formulario de borrador con validación; estados generales de carga/error. | Subida de archivos y envío desde las pantallas, lista/detalle y evaluación del jurado, panel completo de organización. `/jurado` y `/organizacion` son pantallas iniciales. |
+| **UX — Diseño y páginas públicas** | Estilos globales y mensajes de error en español. | Componentes reutilizables (`components/ui/`) y contenido (`content/`) aún vacíos; páginas informativas, galería, insignias, metadatos, sitemap, robots y revisión de accesibilidad. `/` redirige a `/ingresar`. |
+
+Las fechas y límites del evento siguen siendo provisionales en `src/config/event.ts`. Los pesos de evaluación son 25 % innovación, 30 % tecnología, 25 % impacto y 20 % presentación.
+
+**Integración pendiente:** según la [revisión de Storage](src/lib/storage/README.md), faltan los buckets `entregables` (privado) y `portadas` (público). Las comprobaciones controladas de backend no certifican todavía el recorrido completo desde las pantallas. La guía de BD conserva notas antiguas sobre autenticación: el código actual ya persiste usuarios/cuentas y consulta la membresía real.
+
+## Desarrollo local
+
+Con Node.js 24 LTS y npm:
+
+```powershell
+npm ci
+Copy-Item .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Completa `.env` con la conexión PostgreSQL de desarrollo, las variables Supabase, las credenciales OAuth, `AUTH_SECRET` y las listas de correos para roles. Luego:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npx prisma migrate deploy
+npx prisma generate
+npm run db:seed
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Abre [localhost:3000](http://localhost:3000). La semilla es solo para desarrollo: crea usuarios, equipos, proyectos y evaluaciones ficticios; no crea cuentas OAuth ni archivos en Storage. Los correos `@prueba.test` no son credenciales de ingreso.
 
-## Learn More
+## Comprobaciones y documentación
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Estos son los comandos disponibles; no se ejecutaron durante esta actualización documental. No hay un script `npm test` configurado.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Plan y tareas de los cinco roles](PLAN_Roles_Hackathon_v3.md).
+- [Configuración de BD y semilla](prisma/README.md).
+- [Diccionario de datos](docs/data-dictionary.md).
+- [Contrato de archivos, configuración y verificaciones de backend](src/lib/storage/README.md).
