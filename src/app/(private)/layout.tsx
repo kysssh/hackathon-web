@@ -11,11 +11,13 @@ export default async function PrivateLayout({ children }: { children: ReactNode 
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="flex items-center justify-between border-b px-6 py-4">
-        <nav className="flex items-center gap-4 text-sm">
-          <Link href="/panel">Panel</Link>
-          {user.role === 'JUDGE' && <Link href="/jurado">Jurado</Link>}
-          {user.role === 'ORGANIZER' && <Link href="/organizacion">Organización</Link>}
+      <header className="flex items-center justify-between border-b border-white/10 bg-[#120826] px-6 py-4">
+        <nav className="flex items-center gap-5">
+          <Link href="/panel" className="nav-link">Panel</Link>
+          {user.role === 'JUDGE' && <Link href="/jurado" className="nav-link">Jurado</Link>}
+          {user.role === 'ORGANIZER' && (
+            <Link href="/organizacion" className="nav-link">Organización</Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-3 text-sm">
