@@ -185,7 +185,7 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
         type="submit"
         data-testid="project-draft-save"
         disabled={pending}
-        className="rounded border px-4 py-2 disabled:opacity-50"
+        className="button-primary disabled:opacity-50"
       >
         {pending ? 'Guardando…' : 'Guardar borrador'}
       </button>
@@ -198,3 +198,4 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
     </form>
   );
 }
+
