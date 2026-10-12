@@ -34,6 +34,8 @@ La configuración actual usa una conexión directa de Supabase, puerto 5432.
 ```dotenv
 DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@db.YOUR_PROJECT.supabase.co:5432/postgres"
 SUPABASE_URL="https://YOUR_PROJECT.supabase.co"
+DATABASE_ENV="development"
+SEED_DATABASE="development"
 ```
 
 Reemplaza los marcadores; codifica los caracteres especiales de la contraseña en
@@ -138,12 +140,12 @@ Las consultas personales usan el ID devuelto por `getCurrentUser()` para buscar
 `team_members.user_id`; las del jurado filtran `evaluations.judge_id` por ese ID.
 Backend debe hacer coincidir la identidad de sesión con `users.id`.
 
-En esta rama, Auth.js usa JWT sin un adaptador Prisma configurado y
-`getCurrentUser()` todavía devuelve `teamId: null` e `isTeamLeader: false`.
+En esta rama, Auth.js usa JWT con un adaptador Prisma configurado y
+`getCurrentUser()` consulta la membresía real para `teamId` e `isTeamLeader`.
 Los usuarios sembrados no habilitan un ingreso de prueba, no tienen contraseña y
 no incluyen cuentas Google/GitHub. Los correos `@prueba.test` son fixtures, no
 credenciales OAuth utilizables. Para completar las pruebas desde las pantallas
-privadas, BK debe integrar la persistencia de identidad y la membresía real.
+privadas, usa una cuenta OAuth real y una membresía asociada a su `users.id`.
 
 ## 5. Repetir la carga
 
@@ -159,10 +161,10 @@ membresías de sus equipos, y restaura los valores definidos de sus proyectos y
 evaluaciones. Las fechas de unión pueden cambiar. La fila `event_state` existente
 conserva su estado de publicación. Esto no vacía toda la base ni borra archivos.
 
-La primera carga debe hacerse en una base vacía o preparada con los IDs de esta
-semilla. Si ya hay correos o nombres de equipos iguales con otros IDs, los `upsert`
-conservan esos IDs y las referencias fijas pueden fallar. Ejecuta la semilla antes
-de generar escenarios adicionales con las acciones de backend. Coordina una
+Si ya hay correos o nombres de equipos iguales con otros IDs, los `upsert`
+conservan esos IDs y las relaciones usan los IDs reales devueltos por Prisma.
+Los IDs de las tablas anteriores son los creados únicamente en una base vacía.
+Configura `SEED_DATABASE=development` para autorizar la carga de fixtures. Coordina una
 recarga de `hackathon-dev` con el equipo, porque restaura sus fixtures compartidos.
 
 ## Problemas frecuentes
@@ -172,8 +174,8 @@ recarga de `hackathon-dev` con el equipo, porque restaura sus fixtures compartid
   la conexión entregada para `hackathon-dev`.
 - **Falta el cliente generado**: ejecuta `npx prisma generate`.
 - **Faltan tablas**: ejecuta `npx prisma migrate deploy` antes del seed.
-- **Error de clave foránea en la semilla**: revisa si existen fixtures con los
-  mismos correos o nombres y otros IDs; no borres registros compartidos sin coordinar.
+- **Error de clave foránea o unicidad en la semilla**: revisa si existen
+  membresías de los usuarios de prueba en otros equipos; no borres registros compartidos sin coordinar.
 - **El seed carga, pero mi equipo no aparece al ingresar**: revisa que el ID de
   sesión corresponda a `users.id` y que exista su fila en `team_members`.
 

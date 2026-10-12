@@ -2,9 +2,10 @@ import 'server-only';
 
 import { serverNow } from '@/clock';
 import { criteria } from '@/config/criteria';
-import { eventConfig } from '@/config/event';
-import { getCurrentUser } from '@/lib/auth/session';
+import { Prisma } from '@/generated/prisma/client';
+import { getQueryUser as getCurrentUser } from '@/lib/queries/session';
 import { db } from '@/lib/db';
+import { computeMissingFields, getSubmissionWindow } from '@/lib/project/rules';
 import type {
   GalleryFilter,
   GalleryProjectCardDto,
@@ -42,32 +43,17 @@ type OrganizerProjectData = {
 
 export async function getMyProject(): Promise<ProjectDto | null> {
   const currentUser = await getCurrentUser();
-  if (!currentUser) return null;
+  if (!currentUser?.teamId) return null;
 
-  const membership = await db.teamMember.findUnique({
-    where: { userId: currentUser.id },
-    select: {
-      team: {
-        select: {
-          project: {
-            include: {
-              files: { orderBy: { createdAt: 'asc' } },
-            },
-          },
-        },
-      },
-    },
+  const project = await db.project.findUnique({
+    where: { teamId: currentUser.teamId },
+    include: { files: { orderBy: { createdAt: 'asc' } } },
   });
-
-  const project = membership?.team.project;
   if (!project) return null;
 
   const pitchDeck = project.files.find((file) => file.kind === 'PITCH_DECK');
   const coverImage = project.files.find((file) => file.kind === 'COVER_IMAGE');
   const serverNowIso = serverNow();
-  const now = new Date(serverNowIso);
-  const opensAt = new Date(eventConfig.dates.submissionOpensAt);
-  const closesAt = new Date(eventConfig.dates.submissionClosesAt);
 
   return {
     id: project.id,
@@ -90,13 +76,11 @@ export async function getMyProject(): Promise<ProjectDto | null> {
       sizeBytes: file.sizeBytes,
       uploadedAt: file.createdAt.toISOString(),
     })),
-    missingFields: getMissingFields(project, Boolean(pitchDeck)),
-    submissionWindow: {
-      status: now < opensAt ? 'NOT_OPEN' : now > closesAt ? 'CLOSED' : 'OPEN',
-      opensAt: opensAt.toISOString(),
-      closesAt: closesAt.toISOString(),
-      serverNow: serverNowIso,
-    },
+    missingFields: computeMissingFields({
+      ...project,
+      hasPitchDeck: Boolean(pitchDeck),
+    }),
+    submissionWindow: getSubmissionWindow(serverNowIso),
   };
 }
 
@@ -112,50 +96,51 @@ export async function listGalleryProjects({
   if (filter === 'FINALISTS' && !publicationState.finalistsArePublic) return [];
   if (filter === 'WINNERS' && !publicationState.resultsArePublic) return [];
 
-  const normalizedSearch = search?.trim();
-  const projects = await db.project.findMany({
-    where: {
-      submittedAt: { not: null },
-      isVisibleInGallery: true,
-      ...(filter === 'FINALISTS' ? { isFinalist: true } : {}),
-      ...(filter === 'WINNERS' ? { isWinner: true } : {}),
-      ...(normalizedSearch
-        ? {
-            OR: [
-              { title: { contains: normalizedSearch, mode: 'insensitive' } },
-              { summary: { contains: normalizedSearch, mode: 'insensitive' } },
-              {
-                team: {
-                  name: { contains: normalizedSearch, mode: 'insensitive' },
-                },
-              },
-            ],
-          }
-        : {}),
-    },
-    select: {
-      slug: true,
-      title: true,
-      summary: true,
-      isFinalist: true,
-      isWinner: true,
-      winnerTitle: true,
-      team: { select: { name: true } },
-      files: {
-        where: { kind: 'COVER_IMAGE' },
-        select: { bucket: true, storagePath: true },
-        take: 1,
-      },
-    },
-    orderBy: [{ submittedAt: 'desc' }, { title: 'asc' }],
-  });
+  const normalizedSearch = search?.trim() ?? '';
+  // Un JOIN evita consultas separadas para cada relación de Prisma.
+  const projects = await db.$queryRaw<
+    {
+      slug: string;
+      title: string;
+      summary: string;
+      teamName: string;
+      isFinalist: boolean;
+      isWinner: boolean;
+      winnerTitle: string | null;
+      bucket: string | null;
+      storagePath: string | null;
+    }[]
+  >(Prisma.sql`
+    SELECT p.slug, p.title, p.summary, t.name AS "teamName",
+      p.is_finalist AS "isFinalist", p.is_winner AS "isWinner",
+      p.winner_title AS "winnerTitle", cover.bucket,
+      cover.storage_path AS "storagePath"
+    FROM projects p
+    JOIN teams t ON t.id = p.team_id
+    LEFT JOIN LATERAL (
+      SELECT bucket, storage_path FROM project_files
+      WHERE project_id = p.id AND kind = 'COVER_IMAGE'
+      ORDER BY created_at ASC, id ASC LIMIT 1
+    ) cover ON TRUE
+    WHERE p.submitted_at IS NOT NULL AND p.is_visible_in_gallery = TRUE
+      AND (${filter} <> 'FINALISTS' OR p.is_finalist = TRUE)
+      AND (${filter} <> 'WINNERS' OR p.is_winner = TRUE)
+      AND (${normalizedSearch} = ''
+        OR strpos(lower(p.title), lower(${normalizedSearch})) > 0
+        OR strpos(lower(p.summary), lower(${normalizedSearch})) > 0
+        OR strpos(lower(t.name), lower(${normalizedSearch})) > 0)
+    ORDER BY p.submitted_at DESC, p.title ASC, p.id ASC
+  `);
 
   return projects.map((project) => ({
     slug: project.slug,
     title: project.title,
     summary: project.summary,
-    teamName: project.team.name,
-    coverUrl: getCoverUrl(project.files[0]),
+    teamName: project.teamName,
+    coverUrl:
+      project.bucket && project.storagePath
+        ? getPublicStorageUrl(project.bucket, project.storagePath)
+        : null,
     badge: getPublicBadge(project, publicationState),
     winnerTitle: publicationState.resultsArePublic ? project.winnerTitle : null,
   }));
@@ -368,18 +353,6 @@ const organizerProjectSelect = {
   team: { select: { name: true } },
   evaluations: { select: evaluationScoreSelect },
 } as const;
-
-function getMissingFields(
-  project: { title: string; summary: string; description: string },
-  hasPitchDeck: boolean
-): string[] {
-  return [
-    ...(project.title.trim() ? [] : ['title']),
-    ...(project.summary.trim() ? [] : ['summary']),
-    ...(project.description.trim() ? [] : ['description']),
-    ...(hasPitchDeck ? [] : ['pitchDeck']),
-  ];
-}
 
 function getPublicStorageUrl(
   bucket: string,

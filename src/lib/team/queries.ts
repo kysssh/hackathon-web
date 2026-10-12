@@ -1,33 +1,29 @@
 import 'server-only';
 
 import { eventConfig } from '@/config/event';
-import { getCurrentUser } from '@/lib/auth/session';
+import { getQueryUser } from '@/lib/queries/session';
 import { db } from '@/lib/db';
 import type { OrganizerTeamRowDto, TeamDto } from '@/lib/queries/dtos';
 
 export async function getMyTeam(): Promise<TeamDto | null> {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) return null;
+  const currentUser = await getQueryUser();
+  if (!currentUser?.teamId) return null;
 
-  const membership = await db.teamMember.findUnique({
-    where: { userId: currentUser.id },
+  const team = await db.team.findUnique({
+    where: { id: currentUser.teamId },
     include: {
-      team: {
+      members: {
         include: {
-          members: {
-            include: {
-              user: { select: { id: true, name: true, image: true } },
-            },
-            orderBy: { joinedAt: 'asc' },
-          },
+          user: { select: { id: true, name: true, image: true } },
         },
+        orderBy: { joinedAt: 'asc' },
       },
     },
   });
 
-  if (!membership) return null;
+  if (!team) return null;
 
-  return toTeamDto(membership.team);
+  return toTeamDto(team);
 }
 
 export async function listTeamsForOrganizer(): Promise<OrganizerTeamRowDto[]> {

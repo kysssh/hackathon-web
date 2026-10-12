@@ -9,6 +9,24 @@ if (!connectionString) {
   throw new Error('DATABASE_URL es obligatoria para ejecutar la semilla.');
 }
 
+if (
+  process.env.NODE_ENV === 'production' ||
+  process.env.DATABASE_ENV === 'production' ||
+  process.env.SEED_DATABASE !== 'development'
+) {
+  throw new Error(
+    'La semilla requiere SEED_DATABASE=development y no puede ejecutarse en producción.'
+  );
+}
+
+if (
+  new URL(connectionString).hostname ===
+    'db.mktizbbkdhcjpfndaxwv.supabase.co' ||
+  new URL(connectionString).username.includes('mktizbbkdhcjpfndaxwv')
+) {
+  throw new Error('No se permite sembrar el proyecto Supabase de producción.');
+}
+
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 
 const users = [
@@ -213,82 +231,101 @@ const evaluations = [
 ] as const;
 
 async function main() {
-  for (const user of users) {
-    await db.user.upsert({
-      where: { email: user.email },
-      update: { name: user.name, role: user.role },
-      create: user,
-    });
-  }
+  const userIds = new Map<string, string>();
+  const teamIds = new Map<string, string>();
+  const projectIds = new Map<string, string>();
 
-  for (const team of teams) {
-    await db.team.upsert({
-      where: { name: team.name },
-      update: { joinCode: team.joinCode, leaderId: team.leaderId },
-      create: {
-        id: team.id,
-        name: team.name,
-        joinCode: team.joinCode,
-        leaderId: team.leaderId,
-      },
-    });
-  }
+  await db.$transaction(
+    async (db) => {
+      for (const user of users) {
+        const saved = await db.user.upsert({
+          where: { email: user.email },
+          update: { name: user.name, role: user.role },
+          create: user,
+        });
+        userIds.set(user.id, saved.id);
+      }
 
-  await db.teamMember.deleteMany({
-    where: { teamId: { in: teams.map((team) => team.id) } },
-  });
-  await db.teamMember.createMany({
-    data: teams.flatMap((team) =>
-      team.memberIds.map((userId) => ({ teamId: team.id, userId }))
-    ),
-  });
+      for (const team of teams) {
+        const leaderId = userIds.get(team.leaderId)!;
+        const saved = await db.team.upsert({
+          where: { name: team.name },
+          update: { joinCode: team.joinCode, leaderId },
+          create: {
+            id: team.id,
+            name: team.name,
+            joinCode: team.joinCode,
+            leaderId,
+          },
+        });
+        teamIds.set(team.id, saved.id);
+      }
 
-  for (const project of projects) {
-    await db.project.upsert({
-      where: { teamId: project.teamId },
-      update: {
-        slug: project.slug,
-        title: project.title,
-        summary: project.summary,
-        description: project.description,
-        repositoryUrl: project.repositoryUrl,
-        demoUrl: project.demoUrl,
-        videoUrl: project.videoUrl,
-        submittedAt: project.submittedAt,
-        submissionCount: project.submissionCount,
-        isVisibleInGallery: project.isVisibleInGallery,
-        isFinalist: project.isFinalist,
-        isWinner: project.isWinner,
-        winnerTitle: project.winnerTitle,
-      },
-      create: project,
-    });
-  }
+      await db.teamMember.deleteMany({
+        where: { teamId: { in: [...teamIds.values()] } },
+      });
+      await db.teamMember.createMany({
+        data: teams.flatMap((team) =>
+          team.memberIds.map((userId) => ({
+            teamId: teamIds.get(team.id)!,
+            userId: userIds.get(userId)!,
+          }))
+        ),
+      });
 
-  for (const evaluation of evaluations) {
-    await db.evaluation.upsert({
-      where: {
-        projectId_judgeId: {
-          projectId: evaluation.projectId,
-          judgeId: evaluation.judgeId,
-        },
-      },
-      update: {
-        innovationScore: evaluation.innovationScore,
-        technologyScore: evaluation.technologyScore,
-        impactScore: evaluation.impactScore,
-        presentationScore: evaluation.presentationScore,
-        comment: evaluation.comment,
-      },
-      create: evaluation,
-    });
-  }
+      for (const project of projects) {
+        const teamId = teamIds.get(project.teamId)!;
+        const saved = await db.project.upsert({
+          where: { teamId },
+          update: {
+            slug: project.slug,
+            title: project.title,
+            summary: project.summary,
+            description: project.description,
+            repositoryUrl: project.repositoryUrl,
+            demoUrl: project.demoUrl,
+            videoUrl: project.videoUrl,
+            submittedAt: project.submittedAt,
+            submissionCount: project.submissionCount,
+            isVisibleInGallery: project.isVisibleInGallery,
+            isFinalist: project.isFinalist,
+            isWinner: project.isWinner,
+            winnerTitle: project.winnerTitle,
+          },
+          create: { ...project, teamId },
+        });
+        projectIds.set(project.id, saved.id);
+      }
 
-  await db.eventState.upsert({
-    where: { id: 1 },
-    update: {},
-    create: { id: 1 },
-  });
+      for (const evaluation of evaluations) {
+        const projectId = projectIds.get(evaluation.projectId)!;
+        const judgeId = userIds.get(evaluation.judgeId)!;
+        await db.evaluation.upsert({
+          where: {
+            projectId_judgeId: {
+              projectId,
+              judgeId,
+            },
+          },
+          update: {
+            innovationScore: evaluation.innovationScore,
+            technologyScore: evaluation.technologyScore,
+            impactScore: evaluation.impactScore,
+            presentationScore: evaluation.presentationScore,
+            comment: evaluation.comment,
+          },
+          create: { ...evaluation, projectId, judgeId },
+        });
+      }
+
+      await db.eventState.upsert({
+        where: { id: 1 },
+        update: {},
+        create: { id: 1 },
+      });
+    },
+    { timeout: 60000 }
+  );
 }
 
 main()
