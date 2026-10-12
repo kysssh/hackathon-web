@@ -2,6 +2,26 @@
 
 Esta rama parte de `develop`. Las semanas 2 y 3 ya estaban integradas.
 
+## Revisión real del 11 de octubre de 2026
+
+- `hackathon-dev`: las tres migraciones fueron aplicadas; `migrate status`
+  confirmó que el esquema está actualizado. El índice de portadas se aplicó
+  correctamente con `migrate deploy`.
+- `hackathon-prod`: conexión directa accesible, ocho tablas existentes, sin
+  historial de las migraciones de esta rama. Las siete tablas de datos están
+  vacías. `event_state` tiene una fila y ninguna fecha de publicación activa.
+  El verificador no encontró marcadores conocidos de fixtures.
+- El esquema de producción fue creado de otra forma: usa UUID, enums
+  `user_role`/`project_file_kind`, otros nombres de claves e índices y no tiene
+  `project_files.created_at`. También difiere en nulabilidad, precisión de
+  fechas y tipos de puntuación. `prisma migrate diff` confirmó las diferencias.
+
+**No ejecutar `migrate deploy` en el estado actual de producción:** la migración
+inicial intentaría crear tablas que ya existen. Tampoco marcar la migración
+inicial como aplicada: el esquema no es equivalente. Antes de seguir se debe
+acordar con el equipo si se alinea producción al esquema Prisma de `develop`
+o se adapta Prisma al esquema SQL existente. No se aplicaron cambios en producción.
+
 ## Migración y revisión con DP
 
 En el entorno de producción configura `DATABASE_URL` con la conexión de
