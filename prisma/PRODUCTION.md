@@ -75,6 +75,45 @@ sus imports. La prueba real requiere una sesión OAuth y una base accesible.
 
 ## Estado de entrega
 
+### Pruebas reales de desarrollo del 12 de octubre de 2026
+
+La semilla terminó correctamente dos veces consecutivas en `hackathon-dev`.
+La prueba `npm run db:test-readings` ejecutó las diez lecturas originales contra
+PostgreSQL e identificó 13 usuarios de prueba y tres equipos, con 5, 3 y 1
+integrantes. Verificó los proyectos, los puntajes 8.75/8.55 del jurado, el promedio
+8.65 de Byte Force, el orden de organización, los casos sin sesión/sin equipo,
+los filtros de publicación y la ausencia de correos en el detalle público.
+
+La galería ejecutó **dos consultas SQL**, incluso al añadir otra tarjeta visible.
+Equipo y proyecto del panel ejecutaron **cinco consultas SQL de datos**. Estas
+mediciones inyectan la identidad de los fixtures: excluyen la autenticación,
+el render HTTP y la caché de sesión de React. No representan una medición de
+la página completa ni sustituyen la prueba OAuth con FE/DP.
+
+Se probaron finalistas y ganadores publicados/despublicados y la portada con
+espacios en su ruta. Los cambios temporales se realizaron en una transacción
+revertida, y se comprobó que el estado de publicación original se restauró.
+La búsqueda con texto parecido a una inyección SQL no alteró los resultados.
+
+Para repetir, configura la conexión de `hackathon-dev`,
+`DATABASE_ENV=development` y `SUPABASE_URL` del mismo proyecto. La prueba exige
+la semilla cargada y nunca permite la conexión del proyecto de producción.
+
+### Propuesta pendiente de revisión con DP
+
+Conservar el esquema Prisma de `develop` como contrato de la aplicación.
+Los IDs de los fixtures y los nuevos IDs `cuid()` no son compatibles con las
+columnas UUID actuales de producción. También hay que alinear los enums,
+la columna de fecha de los archivos y los tipos/nulabilidad de otros campos.
+
+Antes de cambiar producción, exportar su DDL y la fila de `event_state`,
+recomprobar que las siete tablas sigan vacías y preparar un SQL de alineación
+transaccional revisado con DP. Conservar la configuración del evento y los
+esquemas administrados por Supabase (`auth`, `storage`, etc.). Solo registrar
+una migración como aplicada cuando el esquema sea equivalente; después
+ejecutar el verificador y el recorrido final de la aplicación. Esta propuesta
+no autoriza ni ejecuta una reconstrucción de las tablas de producción.
+
 La migración de producción, la ausencia de fixtures y el conteo de consultas
 en ejecución deben verificarse contra la base real antes de marcar la semana
 4 como terminada. No basta con la validación de tipos o del esquema local.

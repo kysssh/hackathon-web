@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "db:seed": "prisma db seed",
+    "db:test-readings": "tsx test/database-readings.integration.ts",
     "db:verify-production": "tsx prisma/verify-production.ts"
   },
   "dependencies": {
@@ -30,6 +31,7 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "eslint-config-prettier": "^10.1.8",
