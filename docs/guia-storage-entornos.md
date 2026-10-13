@@ -4,9 +4,9 @@ Revisada el **13 de octubre de 2026** para la rama `feat/database-week-4`,
 actualizada con `develop`. Esta guía no contiene contraseñas ni claves reales.
 
 El objetivo es configurar Storage en desarrollo, comprobar que funciona y
-repetir la configuración en producción cuando el equipo lo acuerde. Crear
-buckets no resuelve las diferencias de esquema de PostgreSQL ni completa el
-despliegue de la aplicación; consulta [el diagnóstico de producción](../prisma/PRODUCTION.md).
+repetir la configuración en producción cuando el equipo lo acuerde. El estado
+del trabajo y los pendientes se reúnen en la sección final
+[Pendientes de la semana 4](#pendientes-de-la-semana-4).
 
 ## 1. Identifica el proyecto correcto
 
@@ -223,30 +223,10 @@ Una carga desde el Dashboard no crea una fila en `public.project_files`.
 No aparecerá automáticamente en `/panel/proyecto`; eso requiere el flujo de
 autorización, subida y confirmación de la aplicación.
 
-## 8. Prepara la prueba completa con FE/BK
+## 8. Ejecuta la prueba integrada cuando esté conectada la subida
 
-**Pendiente confirmado en esta rama:**
-`src/app/(private)/panel/proyecto/file-uploader.tsx` todavía simula la subida en
-`uploadDirectToSupabase`. Las acciones de BK sí usan Storage real. Crear los
-buckets no sustituye esa función, y probar hoy la pantalla puede terminar en
-`FILE_NOT_UPLOADED` porque no se transfirió ningún objeto.
-
-Entrega a FE/BK estas tareas concretas antes de considerar exitoso el flujo:
-
-- Sustituir la simulación por una subida directa real con el token de
-  `createUploadUrlAction`, compatible con `uploadToSignedUrl` o su API equivalente.
-- Si eligen el SDK, instalar `@supabase/supabase-js` y proporcionar al navegador
-  solo la URL y la clave publicable. Las variables actuales `SUPABASE_*` son
-  de servidor. FE puede añadir `NEXT_PUBLIC_SUPABASE_URL` y
-  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` o pasar los dos valores públicos desde
-  el servidor; agregar nombres a `.env` por sí solo no conecta el componente.
-- Esperar a que termine la subida y luego ejecutar `confirmUploadAction`.
-  Mantener la ruta y los metadatos recibidos, y propagar errores asíncronos.
-- Mantener `SUPABASE_SECRET_KEY`, `DATABASE_URL` y `AUTH_SECRET` fuera del navegador.
-
-No es necesario abrir políticas anónimas para resolver el pendiente de FE.
-
-## 9. Ejecuta la prueba integrada cuando esté conectada la subida
+Antes de probar desde la pantalla, confirma con FE/BK que el uploader ya sube
+archivos reales; el requisito se detalla en la sección final.
 
 Con `.env` de dev, prepara la base y arranca la aplicación:
 
@@ -278,7 +258,7 @@ la pantalla debe avisar antes de subir. Al 13 de octubre, el plazo de entrega
 configurado todavía no está abierto; puedes probar borrador y archivos antes
 del cierre, pero enviar el proyecto es una prueba diferente.
 
-## 10. Separa los entornos en Vercel con DP
+## 9. Separa los entornos en Vercel con DP
 
 En el proyecto de Vercel, abre **Settings → Environment Variables** y asigna
 cada valor al entorno correcto:
@@ -302,20 +282,18 @@ Tras cambiar variables, genera un nuevo despliegue. En particular, las variables
 que la rama de producción configurada por DP sea la prevista.
 [Variables por entorno en Vercel](https://vercel.com/docs/environment-variables).
 
-## 11. Repite la configuración de buckets en prod cuando corresponda
+## 10. Repite la configuración de buckets en prod cuando corresponda
 
 1. Coordina el paso con DP y abre el enlace de `hackathon-prod` del paso 1.
 2. Crea los mismos dos buckets, con los mismos nombres, límites y MIME.
 3. Ejecuta allí las consultas de verificación de buckets y políticas.
 4. Conserva los buckets de producción sin fixtures ni copias de archivos de dev.
-5. Completa la configuración de variables Production del paso 10.
+5. Completa la configuración de variables Production del paso 9.
 
-Esto prepara Storage, pero el lanzamiento continúa pendiente de alinear el
-esquema PostgreSQL de producción y completar las pruebas con DP. No ejecutes
-las migraciones iniciales a ciegas sobre sus tablas existentes; revisa
-[el diagnóstico y la propuesta](../prisma/PRODUCTION.md).
+Este paso configura Storage. Para migrar PostgreSQL, sigue el procedimiento
+acordado con BD/DP en [el diagnóstico de producción](../prisma/PRODUCTION.md).
 
-## 12. Si algo falla, localiza en qué paso
+## 11. Si algo falla, localiza en qué paso
 
 | Síntoma | Revisión |
 | --- | --- |
@@ -333,3 +311,72 @@ Al reportar un fallo comparte el entorno, el paso y el mensaje, sin claves ni
 tokens firmados. Puedes cerrar la configuración de dev cuando: existen los dos
 buckets con valores correctos, las pruebas del Dashboard pasan y, tras la
 integración de FE, autorización → subida → confirmación → eliminación funciona.
+
+## Pendientes de la semana 4
+
+Configurar los buckets es una parte de la entrega. A continuación se distingue
+lo que ya verificamos en desarrollo de lo que falta para cerrar la semana 4
+de BD y la integración con el equipo. Estado basado en las revisiones del
+11 al 13 de octubre de 2026; actualizarlo cuando se completen las tareas.
+
+### Lo que ya está verificado
+
+- Desarrollo tiene las tres migraciones aplicadas, incluido el índice de portadas.
+- La semilla se ejecutó dos veces correctamente y las diez lecturas reales
+  pasaron las pruebas de integración contra PostgreSQL de dev.
+- La galería ejecutó dos consultas SQL; los datos de equipo/proyecto del panel,
+  cinco. La medición excluye autenticación y render HTTP.
+- Se comprobaron filtros, puntajes y ausencia de correos en el detalle público.
+  Las pruebas de publicación y portada usaron cambios temporales revertidos.
+- La revisión de producción no encontró datos de prueba: las siete tablas de
+  datos estaban vacías y solo existía la configuración del evento.
+
+### Lo que falta y quién lo completa
+
+| Pendiente | Responsable / coordinación | ¿Está relacionado con buckets? | Cuándo se considera terminado |
+| --- | --- | --- | --- |
+| Crear y comprobar los buckets de dev | BD/DP | Sí | Los dos buckets tienen permisos, tamaños y MIME correctos y pasan la prueba del Dashboard. En la última revisión ambos proyectos estaban sin buckets. |
+| Conectar la subida real de la pantalla | FE/BK | Sí | El navegador transfiere el objeto y BK confirma sus metadatos; deja de usarse la simulación. |
+| Probar subida, confirmación y eliminación reales en dev | FE/BK con BD/DP | Sí | El paso 8 funciona con OAuth y se comprueban tanto los objetos como las referencias en `project_files`. |
+| Configurar Storage y variables de prod | BD/DP | Sí | Los buckets de prod tienen la misma configuración, sin fixtures, y los valores del despliegue corresponden al proyecto prod. |
+| Alinear el esquema de PostgreSQL y sus migraciones en prod | BD junto con DP | No | Se acuerda la alineación, se preserva la configuración del evento y `prisma migrate status` confirma que no faltan migraciones. |
+| Validar el recorrido completo en producción | DP con BD/BK/FE | Parcialmente | OAuth, equipos, proyecto, archivos, permisos, publicación y consultas funcionan en el entorno real; se comprueba otra vez que no haya fixtures. |
+| Revisar las vulnerabilidades de dependencias antes del lanzamiento | DP, coordinando cambios con el equipo | No | Se evalúan/corrigen los avisos y se repite la auditoría y las pruebas correspondientes. |
+
+### Detalle del pendiente de FE/BK
+
+`src/app/(private)/panel/proyecto/file-uploader.tsx` todavía simula la subida en
+`uploadDirectToSupabase`. Las acciones de BK sí usan Storage real. Crear los
+buckets no sustituye esa función, y probar la pantalla mientras siga simulada
+puede terminar en `FILE_NOT_UPLOADED` porque no se transfirió ningún objeto.
+
+Para completar la integración, FE/BK debe:
+
+- Sustituir la simulación por una subida directa real con el token de
+  `createUploadUrlAction`, compatible con `uploadToSignedUrl` o su API equivalente.
+- Si eligen el SDK, instalar `@supabase/supabase-js` y proporcionar al navegador
+  solo la URL y la clave publicable. Las variables actuales `SUPABASE_*` son
+  de servidor. FE puede añadir `NEXT_PUBLIC_SUPABASE_URL` y
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` o pasar los dos valores públicos desde
+  el servidor; agregar nombres a `.env` por sí solo no conecta el componente.
+- Esperar a que termine la subida y luego ejecutar `confirmUploadAction`.
+  Mantener la ruta y los metadatos recibidos, y propagar errores asíncronos.
+- Mantener `SUPABASE_SECRET_KEY`, `DATABASE_URL` y `AUTH_SECRET` fuera del navegador.
+
+No es necesario abrir políticas anónimas para resolver este pendiente.
+
+### Detalle del pendiente de BD/DP en producción
+
+El esquema existente en prod difiere del Prisma versionado: usa UUID, otros
+enums y tiene diferencias de columnas y tipos. Por eso, crear buckets no deja
+lista la base de producción. Tampoco corresponde ejecutar las migraciones
+iniciales sobre sus tablas existentes ni marcarlas como aplicadas sin alinear
+primero el esquema.
+
+La decisión y el procedimiento se deben revisar con DP, conservando la
+configuración del evento. El diagnóstico, la propuesta y la auditoría de
+dependencias están en [PRODUCTION.md](../prisma/PRODUCTION.md).
+
+La semana 4 sigue abierta hasta completar los pendientes de BD en producción
+y su revisión final con DP. Las pruebas actuales certifican las lecturas de dev;
+la validación integrada con OAuth y Storage reales todavía debe completarse.
