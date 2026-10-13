@@ -50,5 +50,6 @@ Estos son los comandos disponibles; no se ejecutaron durante esta actualización
 
 - [Plan y tareas de los cinco roles](PLAN_Roles_Hackathon_v3.md).
 - [Configuración de BD y semilla](prisma/README.md).
+- [Guía paso a paso de buckets y entornos dev/prod](docs/guia-storage-entornos.md).
 - [Diccionario de datos](docs/data-dictionary.md).
 - [Contrato de archivos, configuración y verificaciones de backend](src/lib/storage/README.md).
