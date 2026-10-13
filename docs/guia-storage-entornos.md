@@ -202,6 +202,221 @@ después de editarla. [Variables de Next.js](https://nextjs.org/docs/app/guides/
 `DATABASE_ENV` es una etiqueta de comprobación: no selecciona automáticamente
 otro proyecto. `.env.example` es una plantilla; tampoco configura la aplicación.
 
+## Validación de la base de datos para quien recibe el proyecto
+
+Ejecuta esta sección después del paso 6. Puedes validar la BD antes de crear
+los buckets: estas pruebas no transfieren archivos a Storage. Los comandos se
+ejecutan en **PowerShell, desde la raíz del repositorio**, y las consultas SQL
+en **SQL Editor de `hackathon-dev`**.
+
+### A. Prepara el código y las herramientas
+
+Pide acceso al repositorio y una copia de la rama `feat/database-week-4` que
+incluya esta guía y el script `db:test-readings`. Si aún no está publicada en
+GitHub, pide al responsable que la comparta; no basta con una copia antigua de
+`develop`. Recibe las credenciales de dev por el canal privado del equipo.
+
+Comprueba tu versión y la rama antes de instalar:
+
+```powershell
+node --version
+npm --version
+git branch --show-current
+git rev-parse --short HEAD
+npm ci
+```
+
+Usa **Node.js 24 LTS**. La rama debe ser `feat/database-week-4`; guarda el hash
+del commit para identificar qué versión validaste. `npm ci` debe terminar sin
+error. Los avisos de vulnerabilidades son un resultado aparte que debes
+reportar a DP; no ejecutes `npm audit fix --force` para pasar esta prueba.
+
+### B. Confirma que vas a trabajar exclusivamente en dev
+
+Configura el `.env` del paso 6 con `DATABASE_ENV=development`,
+`SEED_DATABASE=development`, `DATABASE_URL` de dev y `SUPABASE_URL` de dev.
+Para estas pruebas de BD no se necesitan credenciales OAuth ni claves de
+Storage: esas se usan después para la aplicación y los archivos reales.
+
+Ejecuta esta comprobación; valida la referencia del proyecto sin imprimir
+contraseñas ni claves:
+
+```powershell
+node -e "require('dotenv').config({quiet:true}); const d=new URL(process.env.DATABASE_URL); const s=new URL(process.env.SUPABASE_URL); const ref='wnkbvhqsyxrsipavingr'; const direct=d.hostname==='db.'+ref+'.supabase.co'; const pool=decodeURIComponent(d.username)==='postgres.'+ref; if ((!direct&&!pool)||s.hostname!==ref+'.supabase.co'||process.env.DATABASE_ENV!=='development'||process.env.SEED_DATABASE!=='development') { console.error('Configuración incorrecta: confirmar el proyecto dev'); process.exit(1); } console.log('DEV confirmado: '+ref);"
+```
+
+**Esperado:** `DEV confirmado: wnkbvhqsyxrsipavingr` y código de salida 0.
+Si aparece un error, corrige el `.env` y las variables de la terminal antes de
+continuar. No uses producción para la semilla o las pruebas de integración.
+
+### C. Comprueba el esquema y las migraciones
+
+Ejecuta cada comando por separado. Después de cada uno, consulta
+`$LASTEXITCODE`: si es distinto de 0, detente y resuelve el fallo.
+
+```powershell
+npx prisma validate
+npx prisma generate
+npx prisma migrate status
+```
+
+Resultados esperados:
+
+- `validate`: confirma que el esquema es válido.
+- `generate`: confirma que generó Prisma Client en `src/generated/prisma`.
+- `migrate status`: termina con `Database schema is up to date!`.
+
+Esta entrega tiene tres migraciones:
+
+```text
+20260921000000_init_hackathon_schema
+20260926000000_enforce_event_state_singleton
+20261011000000_index_project_files
+```
+
+Si `status` informa migraciones pendientes en **dev**, confirma con BD que el
+esquema existente corresponde a esta rama y aplica las migraciones versionadas:
+
+```powershell
+npx prisma migrate deploy
+npx prisma migrate status
+```
+
+Si informa una migración fallida, divergencia de historial o tablas ya existentes
+sin historial, comparte el mensaje con BD/DP. No uses `migrate reset` ni marques
+migraciones como aplicadas para saltarte el fallo. El caso de producción está
+explicado en la sección final de pendientes.
+
+### D. Carga la semilla y comprueba que se puede repetir
+
+Coordina una ventana de prueba con el equipo: la semilla restaura los proyectos
+y evaluaciones de prueba y recrea las membresías de sus tres equipos. Conserva
+los usuarios ajenos a esos fixtures y la publicación actual de `event_state`.
+
+1. Ejecuta `npm run db:seed`.
+2. Comprueba que termine con `Datos de prueba creados.` y `$LASTEXITCODE` igual a 0.
+3. En Supabase dev, ejecuta la consulta siguiente y guarda el resultado.
+4. Ejecuta otra vez `npm run db:seed` y repite la consulta.
+5. Los conteos deben ser los mismos en ambas ejecuciones.
+
+```sql
+WITH fixture_teams AS (
+  SELECT id FROM public.teams
+  WHERE join_code IN ('HACK-29XJ', 'HACK-7KQM', 'HACK-9PRD')
+), fixture_projects AS (
+  SELECT id FROM public.projects
+  WHERE slug IN ('byte-force-access', 'eco-ruta', 'solo-dev-lab')
+)
+SELECT
+  (SELECT count(*) FROM public.users WHERE email LIKE '%@prueba.test') AS users,
+  (SELECT count(*) FROM fixture_teams) AS teams,
+  (SELECT count(*) FROM public.team_members
+   WHERE team_id IN (SELECT id FROM fixture_teams)) AS memberships,
+  (SELECT count(*) FROM fixture_projects) AS projects,
+  (SELECT count(*) FROM public.evaluations
+   WHERE project_id IN (SELECT id FROM fixture_projects)) AS evaluations,
+  (SELECT count(*) FROM public.event_state) AS event_rows;
+```
+
+**En el escenario estándar esperado:** 13 usuarios, 3 equipos, 9 membresías,
+3 proyectos, 3 evaluaciones y 1 fila de estado del evento. Los conteos se
+concentran en fixtures para no confundirlos con los participantes reales.
+Usuarios adicionales `@prueba.test` o evaluaciones adicionales de esos proyectos
+pueden aumentar los conteos: coordina el escenario con BD, no borres datos para
+forzar el resultado. El script automático espera exactamente 13 usuarios con
+ese dominio.
+
+Para revisar los integrantes de los equipos en **SQL Editor de dev**:
+
+```sql
+SELECT t.name, t.join_code, count(tm.user_id) AS members
+FROM public.teams t
+LEFT JOIN public.team_members tm ON tm.team_id = t.id
+WHERE t.join_code IN ('HACK-29XJ', 'HACK-7KQM', 'HACK-9PRD')
+GROUP BY t.id, t.name, t.join_code
+ORDER BY t.name;
+```
+
+Esperado: Byte Force tiene 5 integrantes, Eco Ruta 3 y Solo Dev 1.
+Los correos de prueba no son cuentas Google/GitHub y no permiten entrar a la web.
+
+### E. Ejecuta la prueba automática de las lecturas
+
+Después de cargar la semilla, ejecuta:
+
+```powershell
+npm run db:test-readings
+$LASTEXITCODE
+```
+
+Resultado esperado al final:
+
+```json
+{"status":"PASS","seedFixtures":{"users":13,"teams":3},"galleryQueries":2,"panelDataQueries":5,"scope":"Lecturas reales; identidad inyectada, sin render HTTP/OAuth"}
+```
+
+El código de salida debe ser **0**. La prueba cubre:
+
+- Lecturas de equipo, proyecto y evento, incluidos usuarios sin sesión o equipo.
+- Tamaños de equipos, liderazgo, fechas ISO y campos pendientes de un proyecto.
+- Galería y jurado: excluyen el borrador y el proyecto oculto de los fixtures.
+- Detalle público: no devuelve correos de prueba; sus integrantes solo tienen
+  nombre e imagen.
+- Jurado: notas ponderadas 8.75 y 8.55 para Byte Force. Organización: promedio
+  8.65, dos evaluaciones y orden de mejor promedio con los no calificados al final.
+- Insignias publicadas/despublicadas, búsqueda y portada con espacios en su ruta.
+- Conteo real de SQL: dos consultas de galería y cinco para datos del panel.
+
+La prueba usa PostgreSQL real y una identidad inyectada; no prueba OAuth,
+permisos del recorrido HTTP ni la caché de React durante un render. Escribe
+algunos registros temporales dentro de una transacción y la revierte. No sube
+archivos a Storage. El cierre del proceso puede dejar archivos generados en
+`.next`, que no se versionan.
+
+Si termina con código 1, la validación está **fallida**, aunque algún paso previo
+haya pasado. Guarda el mensaje: puede faltar la semilla, haber cambios en los
+fixtures, faltar `SUPABASE_URL` o existir un fallo de conexión/esquema. No añadas
+usuarios falsos ni modifiques la prueba para conseguir `PASS`.
+
+### F. Comprueba las protecciones y los tipos
+
+```powershell
+node --test test/database-guards.test.mjs
+npx next typegen
+npm run typecheck
+```
+
+Esperado: **5 pruebas de protección pasan**, los tipos de rutas se generan y
+TypeScript termina con código 0. Las pruebas de protección usan conexiones
+ficticias y comprueban el rechazo antes de conectarse: no necesitan acceso a prod.
+
+### G. Entrega un reporte verificable
+
+Al completar la prueba, envía al responsable este resumen rellenado, junto
+con la salida de migraciones, los conteos y el resultado `PASS`:
+
+```text
+Fecha y responsable:
+Rama y commit:
+Entorno: hackathon-dev / wnkbvhqsyxrsipavingr
+Versión de Node:
+Migraciones: al día / error (adjuntar mensaje)
+Semilla: ejecución 1 OK / ejecución 2 OK
+Conteos después de cada ejecución: usuarios / equipos / membresías / proyectos / evaluaciones / evento
+Lecturas: PASS / FAIL
+Consultas SQL: galería / datos del panel
+Protecciones: 5/5 / error
+TypeScript: OK / error
+Buckets: pendiente / verificado según pasos 2–7
+Flujo OAuth y archivos reales: pendiente / verificado según paso 8
+Observaciones:
+```
+
+No adjuntes `.env`, cadenas de conexión completas, claves ni tokens. Si algún
+comando imprime una credencial al fallar, ocúltala antes de compartir la salida.
+**BD validada en dev** significa que C–F pasan. **Storage validado** y **flujo web
+validado** son resultados separados; márcalos solo después de sus propias pruebas.
+
 ## 7. Comprueba Storage desde el Dashboard de dev
 
 Esta prueba confirma los buckets, sus restricciones y el acceso a objetos;
