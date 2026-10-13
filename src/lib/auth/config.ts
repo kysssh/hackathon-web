@@ -12,7 +12,7 @@
  */
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import NextAuth, { type DefaultSession } from 'next-auth';
-import type { Adapter } from 'next-auth/adapters';
+import type { Adapter, AdapterAccount } from 'next-auth/adapters';
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 
@@ -37,7 +37,9 @@ declare module 'next-auth' {
  *   - linkAccount: Auth.js entrega los campos en snake_case (access_token) y el esquema los tiene en camelCase.
  */
 function buildAdapter(): Adapter {
-  const base = PrismaAdapter(db as unknown as Parameters<typeof PrismaAdapter>[0]);
+  const base = PrismaAdapter(
+    db as unknown as Parameters<typeof PrismaAdapter>[0]
+  );
 
   return {
     ...base,
@@ -54,6 +56,45 @@ function buildAdapter(): Adapter {
       return { ...user, emailVerified: null };
     },
 
+    async updateUser({ id, name, email, image }) {
+      // Auth.js también envía emailVerified; esa columna no existe en nuestro esquema.
+      const user = await db.user.update({
+        where: { id },
+        data: {
+          ...(name !== undefined ? { name } : {}),
+          ...(email !== undefined
+            ? { email, role: resolveRoleForEmail(email) }
+            : {}),
+          ...(image !== undefined ? { image } : {}),
+        },
+      });
+      return { ...user, emailVerified: null };
+    },
+
+    async getAccount(
+      providerAccountId,
+      provider
+    ): Promise<AdapterAccount | null> {
+      const account = await db.account.findFirst({
+        where: { providerAccountId, provider },
+      });
+      if (!account) return null;
+      return {
+        userId: account.userId,
+        type: account.type as 'oauth' | 'oidc',
+        provider: account.provider,
+        providerAccountId: account.providerAccountId,
+        refresh_token: account.refreshToken ?? undefined,
+        access_token: account.accessToken ?? undefined,
+        expires_at: account.expiresAt ?? undefined,
+        token_type: account.tokenType?.toLowerCase() as
+          Lowercase<string> | undefined,
+        scope: account.scope ?? undefined,
+        id_token: account.idToken ?? undefined,
+        session_state: account.sessionState ?? undefined,
+      };
+    },
+
     async linkAccount(account) {
       await db.account.create({
         data: {
@@ -67,7 +108,10 @@ function buildAdapter(): Adapter {
           tokenType: account.token_type,
           scope: account.scope,
           idToken: account.id_token,
-          sessionState: typeof account.session_state === 'string' ? account.session_state : undefined,
+          sessionState:
+            typeof account.session_state === 'string'
+              ? account.session_state
+              : undefined,
         },
       });
     },
@@ -80,16 +124,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // Con adaptador, Auth.js usaría sesiones en la base por defecto; aquí se sigue con la cookie firmada (JWT).
   session: { strategy: 'jwt' },
 
-  // Descomentar cuando FE tenga lista la página /ingresar.
-  // Mientras tanto, se puede probar con la página que trae Auth.js en /api/auth/signin.
-  // pages: { signIn: '/ingresar' },
+  pages: { signIn: '/ingresar' },
 
   events: {
     // Si cambian las listas ORGANIZER_EMAILS / JUDGE_EMAILS, el rol guardado se actualiza en el siguiente ingreso.
     async signIn({ user }) {
       if (!user.id || !user.email) return;
       const role = resolveRoleForEmail(user.email);
-      await db.user.updateMany({ where: { id: user.id, NOT: { role } }, data: { role } });
+      await db.user.updateMany({
+        where: { id: user.id, NOT: { role } },
+        data: { role },
+      });
     },
   },
 

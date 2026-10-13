@@ -14,8 +14,17 @@ import { computeMissingFields, getSubmissionWindow, slugify } from './rules';
 
 const MAX_SAVE_ATTEMPTS = 3;
 
-/** Un enlace opcional: puede venir vacÃ­o mientras el proyecto es borrador. */
-const optionalUrl = z.union([z.literal(''), z.url().max(500)]);
+/** Un enlace opcional: puede venir vacío mientras el proyecto es borrador. */
+const optionalUrl = z.union([
+  z.literal(''),
+  z
+    .url()
+    .max(500)
+    .refine((value) => {
+      const protocol = new URL(value).protocol;
+      return protocol === 'https:' || protocol === 'http:';
+    }, 'Usa un enlace HTTP o HTTPS.'),
+]);
 
 const saveProjectDraftSchema = z.object({
   title: z.string().trim().max(120),
@@ -26,11 +35,14 @@ const saveProjectDraftSchema = z.object({
   videoUrl: optionalUrl,
 });
 
-/** Busca una direcciÃ³n libre: "byte-force", "byte-force-2", "byte-force-3"... */
-async function findFreeSlug(base: string): Promise<string> {
+/** Busca una dirección libre: "byte-force", "byte-force-2", "byte-force-3"... */
+async function findFreeSlug(
+  base: string,
+  client: Pick<typeof db, 'project'>
+): Promise<string> {
   for (let n = 1; n <= 20; n++) {
     const candidate = n === 1 ? base : `${base}-${n}`;
-    const taken = await db.project.findUnique({
+    const taken = await client.project.findUnique({
       where: { slug: candidate },
       select: { id: true },
     });
@@ -47,7 +59,7 @@ export const saveProjectDraftAction = createAction(
   saveProjectDraftSchema,
   async (input, user) => {
     if (!user.teamId) throw new ActionError('TEAM_REQUIRED');
-    // Antes de que abran las entregas sÃ­ se puede guardar; despuÃ©s del cierre, no.
+    // Antes de que abran las entregas sí se puede guardar; después del cierre, no.
     if (getSubmissionWindow(serverNow()).status === 'CLOSED')
       throw new ActionError('SUBMISSION_CLOSED');
 
@@ -63,35 +75,61 @@ export const saveProjectDraftAction = createAction(
 
     for (let attempt = 0; attempt < MAX_SAVE_ATTEMPTS; attempt++) {
       try {
-        const existing = await db.project.findUnique({
-          where: { teamId },
-          select: { id: true },
-        });
+        const result = await db.$transaction(async (tx) => {
+          // El mismo orden de bloqueos que envío: equipo y después proyecto.
+          // Serializa la primera creación y las ediciones del mismo equipo.
+          await tx.$queryRaw`SELECT id FROM teams WHERE id = ${teamId} FOR UPDATE`;
+          const existing = await tx.project.findUnique({
+            where: { teamId },
+            select: { id: true },
+          });
+          if (existing) {
+            await tx.$queryRaw`SELECT id FROM projects WHERE id = ${existing.id} FOR UPDATE`;
+          }
+          // La espera por un bloqueo puede terminar después del cierre.
+          if (getSubmissionWindow(serverNow()).status === 'CLOSED')
+            throw new ActionError('SUBMISSION_CLOSED');
 
-        if (existing) {
-          await db.project.update({ where: { id: existing.id }, data: fields });
+          let projectId: string;
+          if (existing) {
+            const updated = await tx.project.update({
+              where: { id: existing.id },
+              data: fields,
+              select: { id: true },
+            });
+            projectId = updated.id;
+          } else {
+            const team = await tx.team.findUnique({
+              where: { id: teamId },
+              select: { name: true },
+            });
+            if (!team) throw new ActionError('TEAM_REQUIRED');
+            const slug = await findFreeSlug(slugify(team.name), tx);
+            const created = await tx.project.create({
+              data: { teamId, slug, ...fields },
+              select: { id: true },
+            });
+            projectId = created.id;
+          }
+          const pitchDecks = await tx.projectFile.count({
+            where: { projectId, kind: 'PITCH_DECK' },
+          });
           return {
-            projectId: existing.id,
-            missingFields: await missingFieldsOf(existing.id, fields),
+            projectId,
+            missingFields: computeMissingFields({
+              ...fields,
+              hasPitchDeck: pitchDecks > 0,
+            }),
           };
-        }
-
-        // Primera vez: la direcciÃ³n se arma con el nombre del equipo y ya no cambia aunque cambie el tÃ­tulo.
-        const team = await db.team.findUniqueOrThrow({
-          where: { id: teamId },
-          select: { name: true },
         });
-        const slug = await findFreeSlug(slugify(team.name));
-        const created = await db.project.create({
-          data: { teamId, slug, ...fields },
-          select: { id: true },
-        });
-        return {
-          projectId: created.id,
-          missingFields: await missingFieldsOf(created.id, fields),
-        };
+        revalidatePath('/panel');
+        revalidatePath('/panel/proyecto');
+        revalidatePath('/galeria', 'layout');
+        revalidatePath('/jurado', 'layout');
+        revalidatePath('/organizacion', 'layout');
+        return result;
       } catch (error) {
-        // Dos integrantes guardando por primera vez a la vez, o dos equipos con la misma direcciÃ³n: se reintenta.
+        // Dos integrantes guardando por primera vez a la vez, o dos equipos con la misma dirección: se reintenta.
         if (!isUniqueViolation(error)) throw error;
       }
     }
@@ -100,16 +138,6 @@ export const saveProjectDraftAction = createAction(
   },
   { access: ['PARTICIPANT'] }
 );
-
-async function missingFieldsOf(
-  projectId: string,
-  fields: { title: string; summary: string; description: string }
-): Promise<string[]> {
-  const pitchDecks = await db.projectFile.count({
-    where: { projectId, kind: 'PITCH_DECK' },
-  });
-  return computeMissingFields({ ...fields, hasPitchDeck: pitchDecks > 0 });
-}
 
 /** Entrega o reenvía el proyecto dentro del plazo, solo por su líder. */
 export const submitProjectAction = createAction(
