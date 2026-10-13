@@ -1,32 +1,19 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import Link from 'next/link';
+import { Anton, Plus_Jakarta_Sans, Space_Grotesk } from 'next/font/google';
+import './globals.css';
 
-import { SignOutButton } from '@/components/private/sign-out-button';
-import { requireUser } from '@/lib/auth/session';
+const anton = Anton({ weight: '400', subsets: ['latin'], variable: '--font-anton', display: 'swap' });
+const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakarta', display: 'swap' });
+const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-grotesk', display: 'swap' });
 
-export const dynamic = 'force-dynamic';
+export const metadata: Metadata = {
+  title: { default: 'Hackathon 2026 | Núcleo Centro Cultural', template: '%s | Hackathon Núcleo 2026' },
+  description: 'Cuatro semanas para crear proyectos que conectan cultura, comunidad y tecnología.',
+  openGraph: { title: 'Hackathon Núcleo Centro Cultural 2026', description: 'Crea el futuro de la cultura y la tecnología.', locale: 'es_PE', type: 'website' },
+};
 
-export default async function PrivateLayout({ children }: { children: ReactNode }) {
-  const user = await requireUser();
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <header className="flex items-center justify-between border-b px-6 py-4">
-        <nav className="flex items-center gap-4 text-sm">
-          <Link href="/panel">Panel</Link>
-          {user.role === 'JUDGE' && <Link href="/jurado">Jurado</Link>}
-          {user.role === 'ORGANIZER' && <Link href="/organizacion">Organización</Link>}
-        </nav>
-
-        <div className="flex items-center gap-3 text-sm">
-          <span>{user.name ?? user.email}</span>
-          <span className="text-xs text-zinc-500">{user.role}</span>
-          <SignOutButton />
-        </div>
-      </header>
-
-      <main className="flex-1 p-6">{children}</main>
-    </div>
-  );
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return <html lang="es" data-scroll-behavior="smooth" className={`${anton.variable} ${jakarta.variable} ${grotesk.variable}`}><body>{children}</body></html>;
 }
 

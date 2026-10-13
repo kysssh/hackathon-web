@@ -1,6 +1,43 @@
-import { redirect } from "next/navigation";
+import Link from 'next/link';
+import { Countdown } from '@/components/ui/countdown';
+import { PageHeading } from '@/components/ui/page-heading';
+import { PublicShell } from '@/components/ui/public-shell';
+import { criteria } from '@/config/criteria';
+import { eventConfig } from '@/config/event';
+import { faqs, milestones, tracks } from '@/content/public';
+import { formatEventDate } from '@/dates';
+import { serverNow } from '@/clock';
+
+export const dynamic = 'force-dynamic';
 
 export default function Home() {
-  // Redirige automáticamente a la pantalla de inicio de sesión
-  redirect("/ingresar");
+  const now = Date.parse(serverNow());
+  const registrationUpcoming = now < Date.parse(eventConfig.dates.registrationOpensAt);
+  const registrationOpen = now >= Date.parse(eventConfig.dates.registrationOpensAt) && now < Date.parse(eventConfig.dates.registrationClosesAt);
+  const submissionsClosed = now >= Date.parse(eventConfig.dates.submissionClosesAt);
+  const countdownTarget = registrationUpcoming ? eventConfig.dates.registrationOpensAt : registrationOpen ? eventConfig.dates.registrationClosesAt : eventConfig.dates.submissionClosesAt;
+  const countdownLabel = registrationUpcoming ? 'Apertura de inscripciones' : registrationOpen ? 'Cierre de inscripciones' : submissionsClosed ? 'Entregables cerrados' : 'Cierre de entregables';
+  const countdownStatus = registrationUpcoming ? 'Próximamente' : registrationOpen ? 'Inscripciones abiertas' : submissionsClosed ? 'Plazo finalizado' : 'Entregables abiertos';
+  return <PublicShell>
+    <section className="hero-shell relative overflow-hidden px-5 pb-20 pt-20 sm:pt-24">
+      <div className="hero-orb hero-orb-left" aria-hidden="true" /><div className="hero-orb hero-orb-right" aria-hidden="true" />
+      <div className="relative mx-auto flex max-w-6xl flex-col items-center text-center">
+        <div className="mb-7 flex items-center gap-3"><span className="brand-mark brand-mark-large" aria-hidden="true">N</span><span className="eyebrow rounded-full border border-purple-400/30 bg-purple-400/10 px-4 py-2 text-purple-200">Hackathon cultural 2026 · Innovación digital</span></div>
+        <h1 className="display-font max-w-5xl text-[clamp(3.5rem,9vw,7.6rem)] leading-[.95] uppercase tracking-[.01em]">Crea el futuro de la <span className="gradient-text">cultura y la tecnología</span></h1>
+        <p className="mt-7 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">Cuatro semanas para convertir ideas culturales en proyectos digitales. Forma un equipo, construye una solución y compártela con la comunidad.</p>
+        <div className="mt-10 w-full max-w-2xl rounded-2xl border border-white/10 bg-[#201534]/90 p-5 text-left shadow-2xl sm:p-7">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-2"><span className="eyebrow text-lavender">{countdownLabel}</span><span className="eyebrow text-emerald-300">{countdownStatus}</span></div>
+          {submissionsClosed ? <p className="rounded-xl bg-[#2c2042] p-5 text-center text-slate-200">El plazo de entrega terminó. Explora los proyectos publicados en la galería.</p> : <Countdown target={countdownTarget} />}<p className="mt-4 text-center text-xs text-slate-400">{formatEventDate(countdownTarget)} · hora de Lima</p>
+        </div>
+        <div className="mt-9 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row"><Link className="button-primary" href={submissionsClosed ? '/galeria' : '/ingresar'}>{submissionsClosed ? 'Explorar la galería' : registrationOpen ? 'Inscribir mi equipo' : 'Entrar a mi panel'} <span aria-hidden="true">↗</span></Link><Link className="button-secondary" href="/informacion">Explorar los retos <span aria-hidden="true">→</span></Link></div>
+        <div className="mt-16 grid w-full max-w-4xl grid-cols-3 divide-x divide-white/10 border-y border-white/10 py-5">{[['04', 'Semanas'], ['02–05', 'Personas por equipo'], ['04', 'Criterios']].map(([value, label]) => <div className="px-2" key={label}><strong className="display-font block text-3xl text-purple-200 sm:text-5xl">{value}</strong><span className="eyebrow mt-1 block text-slate-400">{label}</span></div>)}</div>
+      </div>
+    </section>
+    <section className="section-wrap" id="retos"><PageHeading eyebrow="Tu idea puede cambiar el panorama" title="Retos de impacto cultural" description="Tres caminos para conectar creatividad, comunidad y tecnología. Elige el problema que tu equipo quiere resolver." /><div className="mt-10 grid gap-5 md:grid-cols-3">{tracks.map((track, index) => <article className="feature-card group" key={track.title}><span className="display-font text-5xl text-purple-300/70">0{index + 1}</span><div className="mt-10 h-12 w-12 rounded-xl border border-purple-300/30 bg-purple-400/10 text-center text-2xl leading-[3rem] text-purple-200" aria-hidden="true">{track.icon}</div><h3 className="mt-5 text-xl font-bold text-white">{track.title}</h3><p className="mt-3 leading-7 text-slate-300">{track.description}</p><Link href="/informacion" className="mt-7 inline-block font-semibold text-purple-200 transition group-hover:translate-x-1">Conocer el reto →</Link></article>)}</div></section>
+    <section className="section-band"><div className="section-wrap"><PageHeading eyebrow="El camino a Demo Day" title="Cuatro semanas para crear" description="Un recorrido desde la formación de equipos hasta la presentación de proyectos." /><div className="mt-12 grid gap-4 md:grid-cols-4">{milestones.map((item, index) => <div className="timeline-card" key={item.title}><span className="eyebrow text-purple-300">Semana {index + 1}</span><h3 className="mt-4 text-xl font-bold">{item.title}</h3><p className="mt-3 text-sm leading-6 text-slate-300">{item.description}</p></div>)}</div><Link className="text-link mt-8 inline-flex" href="/cronograma">Ver cronograma completo →</Link></div></section>
+    <section className="section-wrap"><PageHeading eyebrow="Reglas claras desde el inicio" title="Rúbrica de evaluación" description="Cada proyecto se evalúa en cuatro ejes con pesos públicos y fijos." /><div className="mt-10 grid gap-4 sm:grid-cols-2">{criteria.map((criterion) => <div className="rubric-card" key={criterion.key}><div className="flex items-start justify-between gap-4"><h3 className="text-lg font-bold">{criterion.label}</h3><strong className="display-font text-4xl text-purple-200">{criterion.weight}%</strong></div><p className="mt-2 text-sm leading-6 text-slate-300">{criterion.description}</p><div className="mt-6 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-purple-600 to-fuchsia-300" style={{ width: `${criterion.weight * 3}%` }} /></div></div>)}</div><Link className="text-link mt-7 inline-flex" href="/criterios">Entender la evaluación →</Link></section>
+    <section className="section-band"><div className="section-wrap grid gap-10 lg:grid-cols-[1.1fr_.9fr] lg:items-center"><div><span className="eyebrow text-emerald-300">Registro de equipos</span><h2 className="display-font mt-4 text-5xl uppercase sm:text-6xl">Forma tu colectivo digital</h2><p className="mt-5 max-w-xl leading-8 text-slate-300">El líder crea el equipo y recibe un código HACK-XXXX. Los demás se unen con ese código. Cada equipo necesita entre 2 y 5 integrantes para presentar su proyecto.</p><Link className="button-primary mt-8 inline-flex" href="/ingresar">Crear o unirme a un equipo <span aria-hidden="true">↗</span></Link></div><div className="rounded-2xl border border-purple-300/20 bg-[#281b42] p-6 shadow-2xl sm:p-8"><span className="eyebrow text-lavender">Cómo funciona</span>{[['01', 'Ingresa con Google o GitHub'], ['02', 'Crea un equipo o usa el código que recibiste'], ['03', 'Completa y envía tu proyecto antes del cierre']].map(([number, label]) => <div className="mt-6 flex items-center gap-4 border-b border-white/10 pb-5 last:border-0 last:pb-0" key={number}><span className="display-font text-3xl text-purple-300">{number}</span><span className="font-semibold text-slate-100">{label}</span></div>)}</div></div></section>
+    <section className="section-wrap max-w-4xl"><PageHeading eyebrow="Resolvemos tus dudas" title="Preguntas frecuentes" /><div className="mt-9 space-y-3">{faqs.slice(0, 4).map((faq) => <details className="faq-item" key={faq.question}><summary>{faq.question}<span aria-hidden="true">+</span></summary><p>{faq.answer}</p></details>)}</div><Link className="text-link mt-7 inline-flex" href="/faq">Ver todas las preguntas →</Link></section>
+    <section className="section-wrap pt-0"><div className="cta-panel"><div><span className="eyebrow text-purple-200">Convocatoria 2026</span><h2 className="display-font mt-3 text-4xl uppercase sm:text-5xl">¿Listo para crear cultura digital?</h2><p className="mt-3 max-w-xl text-slate-200">Conoce el evento, encuentra a tu equipo y comienza a construir.</p></div><Link className="button-light" href="/ingresar">Entrar a la plataforma ↗</Link></div></section>
+  </PublicShell>;
 }
