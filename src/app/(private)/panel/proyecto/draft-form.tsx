@@ -31,8 +31,8 @@ type FormState = {
 function isValidOptionalUrl(value: string) {
   if (value.trim() === '') return true;
   try {
-    new URL(value);
-    return value.length <= 500;
+    const url = new URL(value);
+    return value.length <= 500 && (url.protocol === 'http:' || url.protocol === 'https:');
   } catch {
     return false;
   }

@@ -1,8 +1,7 @@
 'use client';
 
+import { useAction } from '@/components/private/hooks/use-action';
 import { signOutAction } from '@/lib/auth/actions';
-
-import { useAction } from './hooks/use-action';
 
 export function SignOutButton() {
   const { run, pending, error } = useAction(signOutAction);

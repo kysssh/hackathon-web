@@ -2,7 +2,27 @@
 
 Aplicación para gestionar equipos, proyectos, entregas, evaluaciones y una galería pública. Stack: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Auth.js, Prisma 7 y PostgreSQL/Supabase.
 
-## Estado por rol
+## Revisión del 14 de octubre de 2026
+
+Esta revisión sustituye el diagnóstico histórico del 13 de octubre que se conserva abajo.
+
+Se corrigieron las marcas de un conflicto Git en `sign-out-button.tsx`, que provocaban TS1185 y un error de parsing de ESLint. La ruta del jurado ya está renombrada a `[projectId]`, pero la caché de desarrollo aún referenciaba `[projectld]`: `typecheck` ahora ejecuta `next typegen` antes de TypeScript y excluye `.next/dev`, usando las definiciones regeneradas en `.next/types`.
+
+También se alineó la validación de enlaces del borrador con HTTP/HTTPS del servidor, se usa `formatEventDate` para mostrar el envío en hora de Lima y se permite reenviar desde la pantalla dentro del plazo, como ya permite el backend. Se corrigió el aviso que decía que el envío impedía editar.
+
+| Rol | Estado comprobable en el código frente al plan v3 | Pendiente de entrega |
+| --- | --- | --- |
+| BD | Esquema, migraciones, semilla y consultas reales de semanas 1–3 presentes. | Comprobar idempotencia, rendimiento y base de producción sin datos de prueba. |
+| BK | Acciones de equipos, borrador, archivos, envío, evaluación y organización presentes, cubriendo implementación de semanas 1–4. | Validar OAuth interactivo, Storage y concurrencia con servicios reales. |
+| FE | Panel, equipos, proyecto, subida real con progreso/reintento, jurado y pantallas de organización presentes. | El bloqueo visual al vencer el plazo con la página abierta depende de datos renderizados: falta actualización automática. Validar flujo completo y estados. |
+| UX | Inicio público, páginas informativas, galería, detalle e insignias presentes. | Faltan catálogo completo de componentes y `/dev/ui`, `sitemap` y `robots`; confirmar contenido y revisar accesibilidad/móvil. |
+| DP | Base y herramientas de lint, tipos y build presentes. | `test`, `e2e` y `.github` solo contienen placeholders: faltan suite persistente, CI y guion manual aprobado; verificar Vercel, producción y versión final. |
+
+El proyecto tiene implementaciones de semanas 3 y 4, pero no se puede dar por terminada ninguna semana completa solo por la presencia del código. Fechas y límites siguen siendo provisionales. No se comprobó en esta revisión el estado actual de los buckets, OAuth ni el despliegue, y no se ejecutaron migraciones o semilla sobre bases externas.
+
+Verificación local: `npm run build` terminó correctamente, incluyendo TypeScript y generación de páginas. Inicialmente Windows devolvía EPERM al limpiar `.next/static`; se conservó la caché antigua en `.next-review-backup-20261014` y se compiló con una caché nueva. El respaldo se excluye de Git, ESLint y TypeScript. Git ya reconoce como resuelto el conflicto del botón; no se creó commit ni se hizo push.
+
+## Estado histórico por rol (13 de octubre; sustituido por la revisión anterior)
 
 Revisión del **13 de octubre de 2026**, basada en el código local y el [plan de roles](PLAN_Roles_Hackathon_v3.md). Implementación no implica validación en producción.
 

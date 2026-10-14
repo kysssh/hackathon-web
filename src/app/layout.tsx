@@ -16,4 +16,3 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return <html lang="es" data-scroll-behavior="smooth" className={`${anton.variable} ${jakarta.variable} ${grotesk.variable}`}><body>{children}</body></html>;
 }
-
