@@ -1,61 +1,59 @@
-﻿# Plataforma Web del Hackathon
+# Plataforma Web del Hackathon
 
 Aplicación para gestionar equipos, proyectos, entregas, evaluaciones y una galería pública. Stack: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Auth.js, Prisma 7 y PostgreSQL/Supabase.
 
-## Revisión del 14 de octubre de 2026
+## Estado actual
 
-Esta revisión sustituye el diagnóstico histórico del 13 de octubre que se conserva abajo.
+Actualizado el **14 de octubre de 2026**, según el código local y el [plan de roles v3](PLAN_Roles_Hackathon_v3.md).
 
-Se corrigieron las marcas de un conflicto Git en `sign-out-button.tsx`, que provocaban TS1185 y un error de parsing de ESLint. La ruta del jurado ya está renombrada a `[projectId]`, pero la caché de desarrollo aún referenciaba `[projectld]`: `typecheck` ahora ejecuta `next typegen` antes de TypeScript y excluye `.next/dev`, usando las definiciones regeneradas en `.next/types`.
+El proyecto tiene implementaciones previstas hasta la semana 4 y está en fase de integración y validación. La presencia del código no acredita las verificaciones del plan ni una entrega lista para producción.
 
-También se alineó la validación de enlaces del borrador con HTTP/HTTPS del servidor, se usa `formatEventDate` para mostrar el envío en hora de Lima y se permite reenviar desde la pantalla dentro del plazo, como ya permite el backend. Se corrigió el aviso que decía que el envío impedía editar.
-
-| Rol | Estado comprobable en el código frente al plan v3 | Pendiente de entrega |
+| Rol | Implementado | Pendiente principal |
 | --- | --- | --- |
-| BD | Esquema, migraciones, semilla y consultas reales de semanas 1–3 presentes. | Comprobar idempotencia, rendimiento y base de producción sin datos de prueba. |
-| BK | Acciones de equipos, borrador, archivos, envío, evaluación y organización presentes, cubriendo implementación de semanas 1–4. | Validar OAuth interactivo, Storage y concurrencia con servicios reales. |
-| FE | Panel, equipos, proyecto, subida real con progreso/reintento, jurado y pantallas de organización presentes. | El bloqueo visual al vencer el plazo con la página abierta depende de datos renderizados: falta actualización automática. Validar flujo completo y estados. |
-| UX | Inicio público, páginas informativas, galería, detalle e insignias presentes. | Faltan catálogo completo de componentes y `/dev/ui`, `sitemap` y `robots`; confirmar contenido y revisar accesibilidad/móvil. |
-| DP | Base y herramientas de lint, tipos y build presentes. | `test`, `e2e` y `.github` solo contienen placeholders: faltan suite persistente, CI y guion manual aprobado; verificar Vercel, producción y versión final. |
+| **BD — Base de datos** | Ocho modelos, dos migraciones, cliente Prisma, semilla y las diez consultas del contrato. | Validar semilla idempotente, rendimiento y producción sin datos de prueba. |
+| **BK — Backend** | Auth.js Google/GitHub, sesión y roles; acciones de equipos, borrador, archivos, envío, evaluación y organización. | Verificar OAuth interactivo, Storage, permisos y concurrencia con servicios reales. Confirmar fechas, límites y escala. |
+| **UX — Diseño y páginas públicas** | Inicio, información, cronograma, mentores/jurado, criterios, FAQ, galería y detalle; navegación móvil, insignias y metadatos. | Completar componentes y `/dev/ui`, sitemap, robots, contenido oficial y accesibilidad/móvil. |
+| **FE — Frontend privado** | Ingreso, panel, equipos, proyecto, subida real, jurado y organización con detalle, descargas y publicación. | Completar bloqueo visual al cierre, actualización del equipo entre usuarios y validación del flujo. |
+| **DP — Despliegue y pruebas** | Proyecto base, ESLint/Prettier, utilidades, variables de ejemplo y comandos de verificación local. | Crear suite persistente, CI y guion manual; verificar Vercel, dominio, producción y etiqueta final. |
 
-El proyecto tiene implementaciones de semanas 3 y 4, pero no se puede dar por terminada ninguna semana completa solo por la presencia del código. Fechas y límites siguen siendo provisionales. No se comprobó en esta revisión el estado actual de los buckets, OAuth ni el despliegue, y no se ejecutaron migraciones o semilla sobre bases externas.
+Los informes detallan evidencia, avance por semana, dependencias y criterios de cierre:
 
-Verificación local: `npm run build` terminó correctamente, incluyendo TypeScript y generación de páginas. Inicialmente Windows devolvía EPERM al limpiar `.next/static`; se conservó la caché antigua en `.next-review-backup-20261014` y se compiló con una caché nueva. El respaldo se excluye de Git, ESLint y TypeScript. Git ya reconoce como resuelto el conflicto del botón; no se creó commit ni se hizo push.
+- [Informe del estado general](docs/INFORME_ESTADO_PROYECTO_2026-10-14.md).
+- [Informe de roles frente al plan v3](docs/INFORME_ROLES_HACKATHON_V3_2026-10-14.md).
 
-## Estado histórico por rol (13 de octubre; sustituido por la revisión anterior)
+## Funcionalidades
 
-Revisión del **13 de octubre de 2026**, basada en el código local y el [plan de roles](PLAN_Roles_Hackathon_v3.md). Implementación no implica validación en producción.
+- Ingreso con Google/GitHub y acceso por roles participante, jurado y organizador.
+- Creación de equipos, unión por código, integrantes y lista de pendientes.
+- Borrador, validación local, campos faltantes y envío/reenvío por el líder dentro del plazo.
+- Subida directa a Supabase mediante token firmado, con progreso, cancelación, reintentos, confirmación y eliminación. Los archivos no viajan dentro de una Server Action.
+- Evaluaciones con pesos compartidos: innovación 25 %, tecnología 30 %, impacto 25 % y presentación 20 %.
+- Organización: promedios, visibilidad, finalistas, ganadores, título de ganador, equipos, evaluaciones, descargas firmadas y publicación/despublicación.
+- Galería pública con filtros, búsqueda, detalle e insignias condicionadas por la publicación.
 
-| Rol | Implementado | Pendiente |
-| --- | --- | --- |
-| **BD — Base de datos** | Esquema de 8 tablas, dos migraciones, cliente Prisma, semilla y las 10 consultas reales de equipo, proyecto, evento, galería, jurado y organización. | Verificar semilla idempotente, migración de producción sin fixtures y rendimiento de consultas. Coordinar buckets con DP. |
-| **BK — Backend** | Auth.js con Google/GitHub, roles y sesión; acciones reales de equipos, borrador, archivos, envío y evaluación. Semana 4: acciones reales para visibilidad, finalistas, ganadores y publicación/despublicación. Revisión de acceso de las 12 acciones del contrato. | Validar OAuth, Storage, concurrencia y flujo completo con servicios reales; confirmar puntajes con FE y corregir lo que salga en la prueba final. |
-| **FE — Frontend** | Ingreso, layout privado, panel, equipos y borrador; controles de archivos, confirmación de envío y lista/formulario de jurado. | Reemplazar la subida simulada por la real. Corregir carpeta del jurado: se llama [projectld] pero la página lee projectId. Implementar organización, detalle de proyectos, equipos y publicación. Revisar fechas, estados y bloqueo al cierre. |
-| **UX — Diseño y páginas públicas** | Estilos globales y mensajes de error en español. | components/ui y content siguen vacíos; construir inicio público, páginas informativas, galería y detalle, insignias, metadatos, sitemap y robots; verificar accesibilidad y celular. La raíz redirige a ingresar. |
-| **DP — Despliegue y pruebas** | Proyecto base, ESLint/Prettier, utilidades comunes y .env.example. | test, e2e y .github solo contienen .gitkeep. Crear guion manual y pruebas automáticas; verificar Vercel, variables, dominio, producción y etiqueta v1.0.0. Completar restricciones de lint del contrato. |
+## Pendientes de integración
 
-Las fechas y límites del evento siguen siendo provisionales en src/config/event.ts. Los pesos de evaluación son 25 % innovación, 30 % tecnología, 25 % impacto y 20 % presentación.
+- **Plazos:** el servidor rechaza cambios fuera del plazo, pero el borrador aún no pasa a solo lectura al cierre. Envío y uploader necesitan actualizar automáticamente su estado cuando vence el plazo con la página abierta.
+- **Contenido y reglas:** fechas y límites en `src/config/event.ts` y escala en `src/config/criteria.ts` siguen siendo provisionales. La FAQ declara repositorio/demo/video obligatorios, mientras el servidor permite enviar sin esos enlaces; debe acordarse y alinearse la regla.
+- **Configuración compartida:** algunos textos repiten pesos y límites; el formulario duplica límites del servidor. Falta completar los componentes reutilizables del plan.
+- **Servicios reales:** no se certificaron en esta revisión OAuth interactivo, buckets/políticas de Storage ni producción. Los buckets esperados son `entregables` (privado) y `portadas` (público); comprobar su estado actual.
+- **Pruebas:** `test`, `e2e` y `.github` solo contienen placeholders. Falta una suite reproducible y un recorrido aprobado con participante, jurado y organizador.
+- **Entrega:** la revisión se hizo en `develop`; el plan exige entregar en `main`. Confirmar integración y rama de despliegue de Vercel.
 
-**Organización (BK, semana 4):** ambas acciones conservan el contrato de entrada y devuelven { ok: true, data: {} } mediante createAction. Solo aceptan ORGANIZER; participantes y jurados reciben FORBIDDEN. No se puede activar visibilidad, finalista o ganador en un borrador (PROJECT_NOT_SUBMITTED). Los cambios parciales conservan campos omitidos. Publicar de nuevo conserva la fecha, despublicar la borra y volver a publicar asigna una nueva. Se usan transacciones y bloqueos de fila, y se invalidan las rutas afectadas. La galería existente considera públicos los finalistas cuando hay finalistas o resultados publicados; despublicar solo finalistas mientras los resultados sigan publicados conserva esa regla de BD.
-
-**Borradores y autenticación (BK):** el guardado del borrador usa una transacción con bloqueos en orden equipo/proyecto, vuelve a comprobar el cierre después de esperar e invalida las pantallas dependientes. Los enlaces solo aceptan HTTP/HTTPS. El adaptador de Auth.js adapta `updateUser` al esquema sin `emailVerified` y devuelve `getAccount` con los campos OAuth en snake_case; el ingreso usa `/ingresar`.
-
-**Verificaciones registradas:** la [guía de Storage](src/lib/storage/README.md) documenta 62 casos de acciones contra PostgreSQL real en una única transacción revertida, con sesión, reloj, caché y Storage controlados, además de una regresión del cierre durante la espera de un bloqueo y comprobaciones controladas del adaptador OAuth. La revisión inicial de organización registró 20 casos con Prisma simulado. Estas comprobaciones no constituyen una suite automatizada persistente ni certifican OAuth interactivo, archivos reales en Storage, concurrencia entre transacciones independientes o producción.
-
-**Comprobación actual del repositorio:** `npm run lint` terminó sin errores ni advertencias y `git diff --check` no detectó errores de espacios. `npm run typecheck` falló por errores de sintaxis en los archivos generados `.next/dev/types/routes.d.ts` y `.next/dev/types/validator.ts`. Aunque la revisión previa mediante la API de TypeScript no registró diagnósticos, el comando actual no pasa; queda pendiente regenerar los tipos de Next.js y repetirlo. No se ejecutó build en esta revisión.
-
-**Integración pendiente:** la revisión de Storage del 13 de octubre registra HTTP 200 con una lista de buckets vacía; BD/DP deben crear `entregables` (privado) y `portadas` (público). El uploader de FE todavía simula la subida y la ruta del jurado conserva el nombre `[projectld]` mientras la página lee `projectId`. Faltan las pantallas completas de organización y las páginas públicas. La guía de BD conserva notas antiguas sobre autenticación: el código actual ya persiste usuarios/cuentas y consulta membresía real.
+Despublicar finalistas puede conservar sus distintivos si los resultados siguen publicados: las consultas consideran públicos los finalistas cuando hay finalistas o resultados publicados.
 
 ## Desarrollo local
 
-Con Node.js 24 LTS y npm:
+Entorno de referencia: Node.js 24 LTS y npm. Instala dependencias y crea `.env` si aún no existe:
 
 ```powershell
 npm ci
 Copy-Item .env.example .env
 ```
 
-Completa `.env` con la conexión PostgreSQL de desarrollo, las variables Supabase, las credenciales OAuth, `AUTH_SECRET` y las listas de correos para roles. Luego:
+Completa conexión PostgreSQL de desarrollo, variables Supabase, credenciales Google/GitHub, `AUTH_SECRET` y listas de correos para roles. `.env.example` contiene bloques duplicados: conserva una sola definición por variable en tu `.env`, especialmente las listas de roles.
+
+Sobre la base de desarrollo configurada:
 
 ```bash
 npx prisma migrate deploy
@@ -64,9 +62,9 @@ npm run db:seed
 npm run dev
 ```
 
-Abre [localhost:3000](http://localhost:3000). La semilla es solo para desarrollo: crea usuarios, equipos, proyectos y evaluaciones ficticios; no crea cuentas OAuth ni archivos en Storage. Los correos `@prueba.test` no son credenciales de ingreso.
+Abre [localhost:3000](http://localhost:3000). La semilla crea usuarios, equipos, proyectos y evaluaciones ficticios: úsala solo en desarrollo. No crea cuentas OAuth ni archivos en Storage; los correos `@prueba.test` no son credenciales de ingreso.
 
-## Comprobaciones y documentación
+## Verificación local
 
 ```bash
 npm run lint
@@ -74,9 +72,22 @@ npm run typecheck
 npm run build
 ```
 
-Estos son los comandos disponibles. En esta revisión se ejecutaron lint completo y typecheck, con los resultados indicados arriba. No se ejecutó build. No hay un script `npm test` configurado.
+Los tres comandos terminaron correctamente en la revisión del **14 de octubre de 2026**. `typecheck` regenera tipos de rutas con `next typegen` antes de TypeScript. Estas verificaciones no sustituyen las pruebas de servicios reales ni certifican producción. No hay script `npm test` configurado.
 
-- [Plan y tareas de los cinco roles](PLAN_Roles_Hackathon_v3.md).
+Se resolvió el conflicto del botón de salida y las referencias generadas a la antigua ruta del jurado; la ruta vigente es `/jurado/[projectId]`. También se alinearon validación HTTP/HTTPS, fecha de envío en Lima y reenvío dentro del plazo.
+
+El build encontró inicialmente `EPERM` de Windows al limpiar `.next/static`; terminó con una caché nueva. La anterior se conservó en `.next-review-backup-20261014`, excluida de Git, ESLint y TypeScript.
+
+La [guía de Storage](src/lib/storage/README.md) conserva comprobaciones controladas de backend. Son evidencia histórica; no constituyen una suite persistente ni validan OAuth interactivo, Storage real o concurrencia entre transacciones independientes.
+
+## Documentación
+
+- [Plan de trabajo y contrato v3](PLAN_Roles_Hackathon_v3.md).
+- [Informe del estado general](docs/INFORME_ESTADO_PROYECTO_2026-10-14.md).
+- [Informe por roles y semanas](docs/INFORME_ROLES_HACKATHON_V3_2026-10-14.md).
 - [Configuración de BD y semilla](prisma/README.md).
 - [Diccionario de datos](docs/data-dictionary.md).
-- [Contrato de archivos, configuración y verificaciones de backend](src/lib/storage/README.md).
+- [Contrato de archivos y configuración de Storage](src/lib/storage/README.md).
+- [Consultas adicionales de organización](src/lib/organizer/README.md).
+
+El README resume el estado actual; los informes fechados conservan el diagnóstico de su revisión. Las casillas del plan deben cerrarse con evidencia de sus verificaciones.
