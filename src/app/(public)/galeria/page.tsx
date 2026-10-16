@@ -8,7 +8,16 @@ import { getEventState } from '@/lib/event/queries';
 import { listGalleryProjects } from '@/lib/project/queries';
 import type { GalleryFilter } from '@/lib/queries/dtos';
 
-export const metadata: Metadata = { title: 'Galería de proyectos' };
+export const metadata: Metadata = {
+  title: 'Galería de proyectos · Hackathon 2026',
+  description: 'Explorá los proyectos que los equipos compartieron con la comunidad.',
+  openGraph: {
+    title: 'Galería de proyectos · Hackathon 2026',
+    description: 'Explorá los proyectos que los equipos compartieron con la comunidad.',
+    type: 'website',
+    locale: 'es_PE',
+  },
+};
 export const dynamic = 'force-dynamic';
 
 export default async function GaleriaPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {

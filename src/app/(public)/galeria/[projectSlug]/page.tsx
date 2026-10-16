@@ -17,7 +17,20 @@ export async function generateMetadata({ params }: { params: Promise<{ projectSl
   if (!process.env.DATABASE_URL?.trim()) return { title: 'Galería temporalmente no disponible' };
   const { projectSlug } = await params;
   const project = await getGalleryProject(projectSlug);
-  return { title: project?.title ?? 'Proyecto no encontrado', description: project?.summary };
+  
+  if (!project) return { title: 'Proyecto no encontrado' };
+
+  return {
+    title: `${project.title} · Hackathon 2026`,
+    description: project.summary,
+    openGraph: {
+      title: project.title,
+      description: project.summary,
+      type: 'article',
+      locale: 'es_PE',
+      images: project.coverUrl ? [{ url: project.coverUrl }] : undefined,
+    },
+  };
 }
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ projectSlug: string }> }) {
