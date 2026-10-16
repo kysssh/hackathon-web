@@ -5,7 +5,16 @@ import { eventConfig } from '@/config/event';
 import { milestones } from '@/content/public';
 import { formatEventDate } from '@/dates';
 
-export const metadata: Metadata = { title: 'Cronograma' };
+export const metadata: Metadata = {
+  title: 'Cronograma · Hackathon 2026',
+  description: 'Todas las fechas clave: inscripciones, mentorías, cierre de entregables y Demo Day.',
+  openGraph: {
+    title: 'Cronograma · Hackathon 2026',
+    description: 'Todas las fechas clave: inscripciones, mentorías, cierre de entregables y Demo Day.',
+    type: 'website',
+    locale: 'es_PE',
+  },
+};
 
 export default function CronogramaPage() {
   const dates = [
