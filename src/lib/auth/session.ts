@@ -10,6 +10,8 @@ import 'server-only';
 
 import { redirect } from 'next/navigation';
 
+import { db } from '@/lib/db';
+
 import { auth } from './config';
 import type { UserRole } from './roles';
 
@@ -29,16 +31,20 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   if (!user?.email) return null;
 
-  // TODO (cuando BD entregue el schema): buscar aquí el equipo real del usuario
-  // (tabla team_members) para llenar `teamId` e `isTeamLeader`.
+  // Un usuario pertenece como máximo a un equipo (team_members.user_id es único).
+  const membership = await db.teamMember.findUnique({
+    where: { userId: user.id },
+    select: { teamId: true, team: { select: { leaderId: true } } },
+  });
+
   return {
     id: user.id,
     name: user.name ?? null,
     email: user.email,
     image: user.image ?? null,
     role: user.role,
-    teamId: null,
-    isTeamLeader: false,
+    teamId: membership?.teamId ?? null,
+    isTeamLeader: membership?.team.leaderId === user.id,
   };
 }
 

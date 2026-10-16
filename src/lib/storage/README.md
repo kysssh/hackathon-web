@@ -1,0 +1,70 @@
+# Backend - semana 3
+
+Implementadas las acciones createUploadUrlAction, confirmUploadAction, deleteProjectFileAction, submitProjectAction y saveEvaluationAction.
+
+## Integracion con FE
+
+1. Guardar el borrador: debe existir el proyecto del equipo.
+2. Pedir createUploadUrlAction({ kind, fileName, contentType, sizeBytes }).
+3. Subir directamente desde el navegador con el bucket, storagePath y token devueltos, usando uploadToSignedUrl y sin sobrescritura. Los archivos no viajan dentro de una Server Action.
+4. Confirmar con los mismos metadatos y storagePath. La ruta es opaca y firmada; no se debe modificar.
+5. Mostrar los errores del contrato. Se admite un PITCH_DECK, una COVER_IMAGE y cinco EXTRA. Para reemplazar un archivo unico, eliminar primero el anterior.
+
+El envio requiere lider, minimo de dos integrantes, titulo, resumen, descripcion, pitch confirmado y plazo abierto. Cada reenvio incrementa submissionCount.
+
+La evaluacion requiere rol JUDGE y proyecto enviado y visible. Se comprueba el cierre despues del bloqueo. El upsert guarda una sola fila por proyecto y jurado. El resultado ponderado se calcula con las notas guardadas y pesos 25/30/25/20; el esquema no tiene una columna de promedio.
+
+## Eliminacion y recuperacion
+
+La accion verifica permisos y plazo bajo el bloqueo del proyecto, elimina la fila de ProjectFile y espera el commit. Solo entonces elimina el objeto en Storage. Si falla PostgreSQL, el objeto queda intacto.
+
+El DELETE de Storage se reintenta hasta tres veces ante errores de red, HTTP 429 o HTTP 5xx. Una respuesta que identifica un objeto ausente tambien cuenta como exito. Los errores permanentes no se reintentan.
+
+Si falla Storage despues del commit, la accion conserva el borrado de la referencia y devuelve exito. Registra fileId, bucket y storagePath con el mensaje 'Objeto pendiente de limpieza', sin registrar el error remoto ni credenciales. Un fallo despues del commit o la interrupcion del proceso puede dejar un objeto huerfano. No hay atomicidad entre PostgreSQL y Storage.
+
+Una cola duradera de limpieza requiere un mecanismo persistente adicional coordinado con BD/DP; no se agregaron tablas, migraciones ni tareas de despliegue. Tambien se necesita limpieza de subidas abandonadas o rechazadas al confirmar. El listado del proyecto ya no referencia los objetos cuya fila fue eliminada.
+
+## Configuracion requerida de Storage (BD/DP)
+
+Variables de servidor: SUPABASE_URL, SUPABASE_SECRET_KEY y AUTH_SECRET. La llave de Storage no se devuelve al navegador. AUTH_SECRET debe ser estable durante autorizacion y confirmacion.
+
+En la revision del 6 de octubre de 2026, la consulta real de buckets respondio HTTP 200 pero no contenia:
+
+- entregables: privado; limite 26214400 bytes; application/pdf, application/zip, image/png, image/jpeg.
+- portadas: publico; limite 5242880 bytes; image/png, image/jpeg, image/webp.
+
+BD/DP deben crear estos buckets con sus limites. No habilitar escrituras anonimas ni sobrescritura. Los limites del bucket protegen la subida directa antes de confirmar; backend comprueba tambien los metadatos almacenados.
+
+## Verificacion actual
+
+- Lecturas reales de project_files y evaluations con Prisma correctas. Se verificaron created_at, IDs text, size_bytes integer y notas integer. El bloqueo de esquema descrito anteriormente ya no aparece.
+- 24 casos de semana 3 contra PostgreSQL real, con Storage, sesion y reloj controlados: permisos, 26 MB rechazados, solicitud de 5 MB aceptada, firma de ruta, archivo no subido, metadatos incorrectos, confirmacion repetida, limites, envio y reenvio, cierres, eliminacion, upsert y puntaje. Todos los datos creados se revirtieron.
+- 17 comprobaciones adicionales de regresion con fallos simulados: borrado y commit fallidos sin tocar Storage, orden de operaciones, fallo remoto, registro seguro, permisos y reintentos de red/429/5xx/objeto ausente/error permanente.
+- ESLint del backend correcto.
+- La nota anterior sobre sign-out-button quedó superada: el archivo existe y la comprobación global de TypeScript del 13 de octubre pasa sin diagnósticos.
+
+Pendiente de validacion integrada: subida y eliminacion con los buckets reales; flujo con sesion OAuth; confirmar con FE que el puntaje guardado coincide con el mostrado. Las pruebas controladas no certifican ese flujo.
+
+No se modificaron pantallas, schema, migraciones, queries, seed, variables ni buckets.
+
+## Actualización BK: 13 de octubre de 2026
+
+Se consultaron Storage y PostgreSQL en modo de solo lectura antes de probar: las tablas están accesibles y Storage respondió HTTP 200 con una lista de buckets vacía. No se crearon buckets ni se modificó configuración remota. BD/DP deben crear entregables y portadas para poder probar el recorrido real.
+
+62 casos de acciones se ejecutaron contra PostgreSQL real usando una única transacción revertida al terminar. Se controlaron sesión, reloj, caché y Storage; no se subieron archivos reales. Incluyen acceso sin sesión/rol incorrecto, nombre duplicado, código inválido y normalizado, equipo lleno, mínimo y líder, borrador y validación, límites y firma de archivos, confirmación idempotente, envío y reenvío, plazos, evaluación actualizada, puntaje y acciones reales de organización. El número de usuarios quedó igual antes y después (14). Esto no certifica OAuth, Storage ni concurrencia de transacciones independientes.
+
+Además pasó una regresión controlada del cierre mientras el guardado de borrador espera un bloqueo: devuelve SUBMISSION_CLOSED sin escribir. El adaptador OAuth se verificó con dependencias controladas. ESLint de los archivos BK sin errores ni advertencias y TypeScript global sin diagnósticos, usando las APIs locales por fallo del lanzador de comandos. No se ejecutó build.
+
+Cambios BK: guardado transaccional del borrador con bloqueos en orden equipo/proyecto y revisión del plazo después de esperar; invalidación de pantallas dependientes; URLs limitadas a HTTP/HTTPS. Auth.js adapta updateUser sin emailVerified, getAccount vuelve a campos OAuth snake_case y el ingreso usa /ingresar.
+
+Dependencias pendientes:
+- BD/DP: crear buckets con los límites anteriores, confirmar entornos y migraciones.
+- FE: reemplazar la subida simulada, corregir [projectld], conectar organización y comprobar puntajes.
+- Usuario/organización: validar login interactivo Google/GitHub y aprobar fechas, límites y escala. Por indicación del usuario se conservaron los valores provisionales.
+- DP: flujo completo con los tres roles y suite de pruebas persistente. Los casos aquí documentados se ejecutaron en memoria, sin añadir archivos en test/e2e.
+
+Solo se modificaron archivos de BK en esta continuación; no se tocaron pantallas, consultas, schema, migraciones, seed, utilidades DP ni variables.
+
+## Seguimiento del 16 de octubre de 2026
+
+Este documento conserva evidencia histórica. Consultar la [revisión actual](../../../docs/REVISION_2026-10-16.md) para pendientes vigentes y configuración OAuth de producción. Lint, tipos y build pasaron el 16 de octubre; no se certificaron servicios externos. FE ya tiene subida real, ruta `/jurado/[projectId]` y pantallas de organización; las notas anteriores que los describen como pendientes de implementación quedan superadas. Falta validar el recorrido integrado.

@@ -55,14 +55,14 @@ export default async function PanelPage() {
       <h1 className="text-xl font-semibold">Hola, {user.name ?? user.email}</h1>
 
       {team === null ? (
-        <div className="mt-4 rounded border p-6 text-center" data-testid="panel-no-team">
+        <div className="info-panel mt-4 p-6 text-center" data-testid="panel-no-team">
           <p>Aún no tienes equipo.</p>
-          <Link href="/panel/equipo" className="underline">
+          <Link href="/panel/equipo" className="button-primary mt-4 inline-flex">
             Crear o unirme a un equipo
           </Link>
         </div>
       ) : (
-        <div className="mt-4 rounded border p-6" data-testid="panel-team-summary">
+        <div className="info-panel mt-4 p-6" data-testid="panel-team-summary">
           <p className="font-medium">{team.name}</p>
           <p className="text-sm text-zinc-500">Código: {team.joinCode}</p>
           <ul className="mt-2">
@@ -82,11 +82,11 @@ export default async function PanelPage() {
           <li
             key={item.id}
             data-testid={`panel-pending-${item.id}`}
-            className="flex items-center justify-between rounded border px-4 py-2"
+            className="info-panel flex items-center justify-between px-4 py-2"
           >
             <span className={item.done ? 'line-through text-zinc-400' : ''}>{item.label}</span>
             {!item.done && (
-              <Link href={item.href} className="text-sm underline">
+              <Link href={item.href} className="text-link text-sm">
                 Ir
               </Link>
             )}

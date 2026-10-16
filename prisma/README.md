@@ -138,12 +138,14 @@ Las consultas personales usan el ID devuelto por `getCurrentUser()` para buscar
 `team_members.user_id`; las del jurado filtran `evaluations.judge_id` por ese ID.
 Backend debe hacer coincidir la identidad de sesión con `users.id`.
 
-En esta rama, Auth.js usa JWT sin un adaptador Prisma configurado y
-`getCurrentUser()` todavía devuelve `teamId: null` e `isTeamLeader: false`.
+Actualización del 16 de octubre de 2026: Auth.js usa sesiones JWT con un
+adaptador Prisma que persiste usuarios y cuentas. `getCurrentUser()` consulta
+la membresía real y calcula `teamId` e `isTeamLeader`.
 Los usuarios sembrados no habilitan un ingreso de prueba, no tienen contraseña y
 no incluyen cuentas Google/GitHub. Los correos `@prueba.test` son fixtures, no
 credenciales OAuth utilizables. Para completar las pruebas desde las pantallas
-privadas, BK debe integrar la persistencia de identidad y la membresía real.
+privadas, falta validar el ingreso OAuth interactivo y comprobar identidad,
+membresía y permisos con cuentas reales.
 
 ## 5. Repetir la carga
 

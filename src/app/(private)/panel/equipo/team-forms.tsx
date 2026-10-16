@@ -36,7 +36,7 @@ export function NoTeamForms() {
 
   return (
     <div className="grid gap-6 sm:grid-cols-2">
-      <form onSubmit={handleCreate} className="rounded border p-6" data-testid="team-create-form">
+      <form onSubmit={handleCreate} className="info-panel p-6" data-testid="team-create-form">
         <h2 className="font-medium mb-3">Crear un equipo</h2>
 
         <label htmlFor="team-name" className="text-sm text-zinc-500">
@@ -60,7 +60,7 @@ export function NoTeamForms() {
           type="submit"
           data-testid="team-create-submit"
           disabled={create.pending}
-          className="mt-4 w-full rounded border py-2 disabled:opacity-50"
+          className="button-primary mt-4 w-full disabled:opacity-50"
         >
           {create.pending ? 'Creando…' : 'Crear equipo'}
         </button>
@@ -72,7 +72,7 @@ export function NoTeamForms() {
         )}
       </form>
 
-      <form onSubmit={handleJoin} className="rounded border p-6" data-testid="team-join-form">
+      <form onSubmit={handleJoin} className="info-panel p-6" data-testid="team-join-form">
         <h2 className="font-medium mb-3">Unirme con un código</h2>
 
         <label htmlFor="join-code" className="text-sm text-zinc-500">
@@ -96,7 +96,7 @@ export function NoTeamForms() {
           type="submit"
           data-testid="team-join-submit"
           disabled={join.pending}
-          className="mt-4 w-full rounded border py-2 disabled:opacity-50"
+          className="button-primary mt-4 w-full disabled:opacity-50"
         >
           {join.pending ? 'Uniéndote…' : 'Unirme al equipo'}
         </button>
@@ -127,7 +127,7 @@ export function TeamCard({ team }: { team: TeamDto }) {
   }
 
   return (
-    <div className="rounded border p-6" data-testid="team-card">
+    <div className="info-panel p-6" data-testid="team-card">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">{team.name}</h2>
         {!team.hasMinimumMembers && (
@@ -147,7 +147,7 @@ export function TeamCard({ team }: { team: TeamDto }) {
           data-testid="team-copy-code"
           onClick={handleCopy}
           disabled={team.isFull}
-          className="text-sm underline disabled:opacity-50"
+          className="text-link text-sm disabled:opacity-50"
         >
           {copied ? 'Copiado' : 'Copiar'}
         </button>
@@ -167,3 +167,4 @@ export function TeamCard({ team }: { team: TeamDto }) {
     </div>
   );
 }
+
