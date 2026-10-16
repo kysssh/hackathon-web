@@ -4,7 +4,7 @@ Aplicación para gestionar equipos, proyectos, entregas, evaluaciones y una gale
 
 ## Estado actual
 
-Actualizado el **14 de octubre de 2026**, según el código local y el [plan de roles v3](PLAN_Roles_Hackathon_v3.md).
+Actualizado el **16 de octubre de 2026**, según el código local y el [plan de roles v3](PLAN_Roles_Hackathon_v3.md).
 
 El proyecto tiene implementaciones previstas hasta la semana 4 y está en fase de integración y validación. La presencia del código no acredita las verificaciones del plan ni una entrega lista para producción.
 
@@ -17,6 +17,9 @@ El proyecto tiene implementaciones previstas hasta la semana 4 y está en fase d
 | **DP — Despliegue y pruebas** | Proyecto base, ESLint/Prettier, utilidades, variables de ejemplo y comandos de verificación local. | Crear suite persistente, CI y guion manual; verificar Vercel, dominio, producción y etiqueta final. |
 
 Los informes detallan evidencia, avance por semana, dependencias y criterios de cierre:
+
+- [Revisión del 16 de octubre y pendientes de backend](docs/REVISION_2026-10-16.md).
+- [Configuración de OAuth para producción](docs/OAUTH_PRODUCCION.md).
 
 - [Informe del estado general](docs/INFORME_ESTADO_PROYECTO_2026-10-14.md).
 - [Informe de roles frente al plan v3](docs/INFORME_ROLES_HACKATHON_V3_2026-10-14.md).
@@ -72,7 +75,7 @@ npm run typecheck
 npm run build
 ```
 
-Los tres comandos terminaron correctamente en la revisión del **14 de octubre de 2026**. `typecheck` regenera tipos de rutas con `next typegen` antes de TypeScript. Estas verificaciones no sustituyen las pruebas de servicios reales ni certifican producción. No hay script `npm test` configurado.
+Los tres comandos terminaron correctamente en la revisión del **16 de octubre de 2026**. `typecheck` regenera tipos de rutas con `next typegen` antes de TypeScript. Estas verificaciones no sustituyen las pruebas de servicios reales ni certifican producción. No hay script `npm test` configurado.
 
 Se resolvió el conflicto del botón de salida y las referencias generadas a la antigua ruta del jurado; la ruta vigente es `/jurado/[projectId]`. También se alinearon validación HTTP/HTTPS, fecha de envío en Lima y reenvío dentro del plazo.
 

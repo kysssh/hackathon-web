@@ -96,3 +96,7 @@ La guía histórica de Storage registra comprobaciones controladas; no reemplaza
 No se acreditan aún las siete condiciones finales de la sección 8. Compilar localmente está comprobado, pero falta certificar `main` y producción, proveedores, base sin fixtures, configuración oficial, guion aprobado y versión final. Las casillas vacías del plan deben actualizarse con evidencia, sin confundirlas con ausencia automática de implementación.
 
 Consultar también [informe general](INFORME_ESTADO_PROYECTO_2026-10-14.md), que concentra brechas y orden propuesto de cierre.
+
+## Seguimiento del 16 de octubre de 2026
+
+Este documento conserva evidencia histórica. Consultar la [revisión actual](REVISION_2026-10-16.md) para pendientes vigentes y configuración OAuth de producción. Lint, tipos y build pasaron el 16 de octubre; no se certificaron servicios externos. FE ya tiene subida real, ruta `/jurado/[projectId]` y pantallas de organización; las notas anteriores que los describen como pendientes de implementación quedan superadas. Falta validar el recorrido integrado.

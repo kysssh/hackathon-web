@@ -62,3 +62,7 @@ Este informe evalúa entregables del repositorio, no el desempeño de personas: 
 5. BD/DP preparan producción sin fixtures, verifican OAuth en dominio final, rama de despliegue y etiqueta final.
 
 La entrega final de la sección 8 continúa pendiente de evidencia. No se modificaron las casillas del plan para dar por aprobados trabajos no verificados.
+
+## Seguimiento del 16 de octubre de 2026
+
+Este documento conserva evidencia histórica. Consultar la [revisión actual](REVISION_2026-10-16.md) para pendientes vigentes y configuración OAuth de producción. Lint, tipos y build pasaron el 16 de octubre; no se certificaron servicios externos. FE ya tiene subida real, ruta `/jurado/[projectId]` y pantallas de organización; las notas anteriores que los describen como pendientes de implementación quedan superadas. Falta validar el recorrido integrado.

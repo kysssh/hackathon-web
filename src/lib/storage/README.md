@@ -64,3 +64,7 @@ Dependencias pendientes:
 - DP: flujo completo con los tres roles y suite de pruebas persistente. Los casos aquí documentados se ejecutaron en memoria, sin añadir archivos en test/e2e.
 
 Solo se modificaron archivos de BK en esta continuación; no se tocaron pantallas, consultas, schema, migraciones, seed, utilidades DP ni variables.
+
+## Seguimiento del 16 de octubre de 2026
+
+Este documento conserva evidencia histórica. Consultar la [revisión actual](../../../docs/REVISION_2026-10-16.md) para pendientes vigentes y configuración OAuth de producción. Lint, tipos y build pasaron el 16 de octubre; no se certificaron servicios externos. FE ya tiene subida real, ruta `/jurado/[projectId]` y pantallas de organización; las notas anteriores que los describen como pendientes de implementación quedan superadas. Falta validar el recorrido integrado.

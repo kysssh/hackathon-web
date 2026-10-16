@@ -9,3 +9,7 @@ Implementadas updateProjectFlagsAction y updateEventStateAction sin cambiar sus 
 Verificación del 13 de octubre de 2026: 20 casos controlados con Zod y createAction reales, sesión/Prisma/reloj/caché simulados. ESLint del archivo sin errores ni advertencias; tipos globales sin diagnósticos mediante la API de TypeScript. Revisión de permisos de las 12 acciones: auth públicas, equipos/proyecto/archivos PARTICIPANT, evaluación JUDGE, organización ORGANIZER. submitProjectAction además verifica liderazgo real dentro de su transacción.
 
 Pendiente: integración en PostgreSQL/Supabase, concurrencia real, OAuth, pantallas FE y prueba final con DP. No se modificaron archivos de FE, UX, BD, DP, schema, migraciones, seed, variables ni buckets. Las pruebas se ejecutaron en memoria; no se creó una suite en test/e2e.
+
+## Seguimiento del 16 de octubre de 2026
+
+Este documento conserva evidencia histórica. Consultar la [revisión actual](../../../docs/REVISION_2026-10-16.md) para pendientes vigentes y configuración OAuth de producción. Lint, tipos y build pasaron el 16 de octubre; no se certificaron servicios externos. FE ya tiene subida real, ruta `/jurado/[projectId]` y pantallas de organización; las notas anteriores que los describen como pendientes de implementación quedan superadas. Falta validar el recorrido integrado.
