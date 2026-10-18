@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { LiveRefresh } from '@/components/private/live-refresh';
 import { getMyTeam } from '@/lib/team/queries';
 import { getMyProject } from '@/lib/project/queries';
 import { requireUser } from '@/lib/auth/session';
@@ -52,12 +53,19 @@ export default async function PanelPage() {
 
   return (
     <div>
+      <LiveRefresh enabled={team !== null && !team.isFull} />
       <h1 className="text-xl font-semibold">Hola, {user.name ?? user.email}</h1>
 
       {team === null ? (
-        <div className="info-panel mt-4 p-6 text-center" data-testid="panel-no-team">
+        <div
+          className="info-panel mt-4 p-6 text-center"
+          data-testid="panel-no-team"
+        >
           <p>Aún no tienes equipo.</p>
-          <Link href="/panel/equipo" className="button-primary mt-4 inline-flex">
+          <Link
+            href="/panel/equipo"
+            className="button-primary mt-4 inline-flex"
+          >
             Crear o unirme a un equipo
           </Link>
         </div>
@@ -84,7 +92,9 @@ export default async function PanelPage() {
             data-testid={`panel-pending-${item.id}`}
             className="info-panel flex items-center justify-between px-4 py-2"
           >
-            <span className={item.done ? 'line-through text-zinc-400' : ''}>{item.label}</span>
+            <span className={item.done ? 'line-through text-zinc-400' : ''}>
+              {item.label}
+            </span>
             {!item.done && (
               <Link href={item.href} className="text-link text-sm">
                 Ir
@@ -96,3 +106,4 @@ export default async function PanelPage() {
     </div>
   );
 }
+
