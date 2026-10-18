@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useAction } from '@/components/private/hooks/use-action';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/toast';
 import { updateEventStateAction } from '@/lib/organizer/actions';
 
 type StateField = 'finalistsPublished' | 'resultsPublished';
@@ -13,6 +17,9 @@ type PublicationItem = {
   isPublished: boolean;
   /** Fecha ya formateada en el servidor con formatEventDate (evita desfases de zona horaria). */
   publishedLabel: string | null;
+  /** Qué pasará al publicar / despublicar (calculado en la página con los datos reales). */
+  publishNotes: string[];
+  unpublishNotes: string[];
 };
 
 function buildInput(field: StateField, value: boolean): StateInput {
@@ -25,85 +32,110 @@ function PublicationRow({
   field,
   slug,
   title,
-  effect,
+  publishedWord,
   item,
 }: {
   field: StateField;
   slug: 'finalists' | 'results';
   title: string;
-  effect: string;
+  /** "publicados" / "despublicados" concordando con el título, para el aviso. */
+  publishedWord: string;
   item: PublicationItem;
 }) {
   const router = useRouter();
-  const [confirming, setConfirming] = useState(false);
+  const { showToast } = useToast();
+  const [open, setOpen] = useState(false);
   const { run, pending, error } = useAction(updateEventStateAction);
 
   const nextValue = !item.isPublished;
+  const notes = nextValue ? item.publishNotes : item.unpublishNotes;
+
+  function handleConfirm() {
+    run(buildInput(field, nextValue), () => {
+      setOpen(false);
+      showToast(
+        `${title} ${nextValue ? publishedWord : `des${publishedWord}`}.`,
+        'success'
+      );
+      router.refresh();
+    });
+  }
 
   return (
     <div data-testid={`org-publication-${slug}`} className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="space-y-1">
           <p className="font-medium">{title}</p>
-          <p data-testid={`org-publication-${slug}-status`} className="text-sm text-slate-400">
-            {item.isPublished && item.publishedLabel
-              ? `Publicado el ${item.publishedLabel}`
-              : 'No publicado'}
+          <p data-testid={`org-publication-${slug}-status`}>
+            {item.isPublished && item.publishedLabel ? (
+              <Badge tone="success">Publicado el {item.publishedLabel}</Badge>
+            ) : (
+              <Badge tone="neutral">No publicado</Badge>
+            )}
           </p>
         </div>
 
-        {!confirming && (
-          <button
-            type="button"
-            data-testid={`org-publication-${slug}-open`}
-            onClick={() => setConfirming(true)}
-            className={item.isPublished ? 'button-secondary' : 'button-primary'}
-          >
-            {item.isPublished ? 'Despublicar' : 'Publicar'}
-          </button>
-        )}
+        <Button
+          type="button"
+          variant={item.isPublished ? 'secondary' : 'primary'}
+          data-testid={`org-publication-${slug}-open`}
+          onClick={() => setOpen(true)}
+        >
+          {item.isPublished ? 'Despublicar' : 'Publicar'}
+        </Button>
       </div>
 
-      {confirming && (
-        <div className="space-y-3 rounded border border-white/10 p-4">
-          <p className="text-sm">
-            {nextValue
-              ? `Publicar ${title.toLowerCase()} ${effect}. ¿Confirmas?`
-              : `Despublicar ${title.toLowerCase()} los esconde de la galería pública. ¿Confirmas?`}
-          </p>
-          <div className="flex gap-3">
-            <button
+      <Dialog
+        open={open}
+        onClose={() => {
+          if (!pending) setOpen(false);
+        }}
+        title={`${nextValue ? 'Publicar' : 'Despublicar'} ${title.toLowerCase()}`}
+        description="Esto cambia lo que ve el público en la galería."
+        footer={
+          <>
+            <Button
               type="button"
-              data-testid={`org-publication-${slug}-confirm`}
-              disabled={pending}
-              onClick={() =>
-                run(buildInput(field, nextValue), () => {
-                  setConfirming(false);
-                  router.refresh();
-                })
-              }
-              className="button-primary disabled:opacity-50"
-            >
-              {pending ? 'Guardando…' : nextValue ? 'Sí, publicar' : 'Sí, despublicar'}
-            </button>
-            <button
-              type="button"
+              variant="secondary"
               data-testid={`org-publication-${slug}-cancel`}
               disabled={pending}
-              onClick={() => setConfirming(false)}
-              className="button-secondary disabled:opacity-50"
+              onClick={() => setOpen(false)}
             >
               Cancelar
-            </button>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <p role="alert" data-testid={`org-publication-${slug}-error`} className="text-sm text-red-300">
-          {error}
-        </p>
-      )}
+            </Button>
+            <Button
+              type="button"
+              data-testid={`org-publication-${slug}-confirm`}
+              loading={pending}
+              onClick={handleConfirm}
+            >
+              {pending
+                ? 'Guardando…'
+                : nextValue
+                  ? 'Sí, publicar'
+                  : 'Sí, despublicar'}
+            </Button>
+          </>
+        }
+      >
+        <ul
+          data-testid={`org-publication-${slug}-notes`}
+          className="list-disc space-y-1 pl-5"
+        >
+          {notes.map((n) => (
+            <li key={n}>{n}</li>
+          ))}
+        </ul>
+        {error && (
+          <p
+            role="alert"
+            data-testid={`org-publication-${slug}-error`}
+            className="mt-3 text-sm text-red-300"
+          >
+            {error}
+          </p>
+        )}
+      </Dialog>
     </div>
   );
 }
@@ -116,13 +148,13 @@ export function PublicationCard({
   results: PublicationItem;
 }) {
   return (
-    <div data-testid="org-publication-card" className="info-panel space-y-6 p-6">
+    <div data-testid="org-publication-card" className="info-panel space-y-6">
       <h2 className="font-medium">Publicación en la galería</h2>
       <PublicationRow
         field="finalistsPublished"
         slug="finalists"
         title="Finalistas"
-        effect="los muestra en la galería pública"
+        publishedWord="publicados"
         item={finalists}
       />
       <hr className="border-white/10" />
@@ -130,7 +162,7 @@ export function PublicationCard({
         field="resultsPublished"
         slug="results"
         title="Resultados"
-        effect="muestra a los ganadores en la galería pública"
+        publishedWord="publicados"
         item={results}
       />
     </div>
