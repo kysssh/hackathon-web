@@ -4,17 +4,17 @@ Aplicación para gestionar equipos, proyectos, entregas, evaluaciones y una gale
 
 ## Estado actual
 
-Actualizado el **16 de octubre de 2026**, según el código local y el [plan de roles v3](PLAN_Roles_Hackathon_v3.md).
+Actualizado el **17 de octubre de 2026**, según el código local y el [plan de roles v3](PLAN_Roles_Hackathon_v3.md).
 
 El proyecto tiene implementaciones previstas hasta la semana 4 y está en fase de integración y validación. La presencia del código no acredita las verificaciones del plan ni una entrega lista para producción.
 
-| Rol | Implementado | Pendiente principal |
-| --- | --- | --- |
-| **BD — Base de datos** | Ocho modelos, dos migraciones, cliente Prisma, semilla y las diez consultas del contrato. | Validar semilla idempotente, rendimiento y producción sin datos de prueba. |
-| **BK — Backend** | Auth.js Google/GitHub, sesión y roles; acciones de equipos, borrador, archivos, envío, evaluación y organización. | Verificar OAuth interactivo, Storage, permisos y concurrencia con servicios reales. Confirmar fechas, límites y escala. |
-| **UX — Diseño y páginas públicas** | Inicio, información, cronograma, mentores/jurado, criterios, FAQ, galería y detalle; navegación móvil, insignias y metadatos. | Completar componentes y `/dev/ui`, sitemap, robots, contenido oficial y accesibilidad/móvil. |
-| **FE — Frontend privado** | Ingreso, panel, equipos, proyecto, subida real, jurado y organización con detalle, descargas y publicación. | Completar bloqueo visual al cierre, actualización del equipo entre usuarios y validación del flujo. |
-| **DP — Despliegue y pruebas** | Proyecto base, ESLint/Prettier, utilidades, variables de ejemplo y comandos de verificación local. | Crear suite persistente, CI y guion manual; verificar Vercel, dominio, producción y etiqueta final. |
+| Rol                                | Implementado                                                                                                                  | Pendiente principal                                                                                                     |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **BD — Base de datos**             | Ocho modelos, dos migraciones, cliente Prisma, semilla y las diez consultas del contrato.                                     | Validar semilla idempotente, rendimiento y producción sin datos de prueba.                                              |
+| **BK — Backend**                   | Auth.js Google/GitHub, sesión y roles; acciones de equipos, borrador, archivos, envío, evaluación y organización.             | Verificar OAuth interactivo, Storage, permisos y concurrencia con servicios reales. Confirmar fechas, límites y escala. |
+| **UX — Diseño y páginas públicas** | Inicio, información, cronograma, mentores/jurado, criterios, FAQ, galería y detalle; navegación móvil, insignias y metadatos. | Completar componentes y `/dev/ui`, sitemap, robots, contenido oficial y accesibilidad/móvil.                            |
+| **FE — Frontend privado**          | Ingreso, panel, equipos, proyecto, subida real, jurado y organización con detalle, descargas y publicación.                   | Completar bloqueo visual al cierre, actualización del equipo entre usuarios y validación del flujo.                     |
+| **DP — Despliegue y pruebas**      | Proyecto base, ESLint/Prettier, utilidades, variables de ejemplo y comandos de verificación local.                            | Crear suite persistente, CI y guion manual; verificar Vercel, dominio, producción y etiqueta final.                     |
 
 Los informes detallan evidencia, avance por semana, dependencias y criterios de cierre:
 
@@ -69,13 +69,15 @@ Abre [localhost:3000](http://localhost:3000). La semilla crea usuarios, equipos,
 
 ## Verificación local
 
+**Pendiente de DP:** con la aplicación en ejecución, revisar todas las páginas y funcionalidades implementadas usando los roles participante, jurado y organizador. Anotar qué funciona, qué falla, cómo reproducir cada fallo y quién debe corregirlo según el plan v3. Ver [nota de revisión manual](docs/PLAN_PRUEBAS_DP.md).
+
 ```bash
 npm run lint
 npm run typecheck
 npm run build
 ```
 
-Los tres comandos terminaron correctamente en la revisión del **16 de octubre de 2026**. `typecheck` regenera tipos de rutas con `next typegen` antes de TypeScript. Estas verificaciones no sustituyen las pruebas de servicios reales ni certifican producción. No hay script `npm test` configurado.
+Los tres comandos terminaron correctamente en la revisión del **16 de octubre de 2026**. El **17 de octubre** se repitieron lint y typecheck y ambos pasaron; el build no se repitió ese día. `typecheck` regenera tipos de rutas con `next typegen` antes de TypeScript. Estas verificaciones no sustituyen las pruebas de servicios reales ni certifican producción. No hay script `npm test` configurado.
 
 Se resolvió el conflicto del botón de salida y las referencias generadas a la antigua ruta del jurado; la ruta vigente es `/jurado/[projectId]`. También se alinearon validación HTTP/HTTPS, fecha de envío en Lima y reenvío dentro del plazo.
 
@@ -85,6 +87,7 @@ La [guía de Storage](src/lib/storage/README.md) conserva comprobaciones control
 
 ## Documentación
 
+- [Revisión manual para DP](docs/PLAN_PRUEBAS_DP.md).
 - [Plan de trabajo y contrato v3](PLAN_Roles_Hackathon_v3.md).
 - [Informe del estado general](docs/INFORME_ESTADO_PROYECTO_2026-10-14.md).
 - [Informe por roles y semanas](docs/INFORME_ROLES_HACKATHON_V3_2026-10-14.md).
