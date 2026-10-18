@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { useAction } from '@/components/private/hooks/use-action';
+import { LiveRefresh } from '@/components/private/live-refresh';
 import type { TeamDto } from '@/lib/queries/dtos';
 import { createTeamAction, joinTeamAction } from '@/lib/team/actions';
 
@@ -31,12 +32,18 @@ export function NoTeamForms() {
     e.preventDefault();
     // El backend acepta minúsculas y espacios, pero limpiamos antes de enviar
     // para que el usuario vea de inmediato el código tal como quedará.
-    join.run({ joinCode: joinCode.trim().toUpperCase() }, () => router.refresh());
+    join.run({ joinCode: joinCode.trim().toUpperCase() }, () =>
+      router.refresh()
+    );
   }
 
   return (
     <div className="grid gap-6 sm:grid-cols-2">
-      <form onSubmit={handleCreate} className="info-panel p-6" data-testid="team-create-form">
+      <form
+        onSubmit={handleCreate}
+        className="info-panel p-6"
+        data-testid="team-create-form"
+      >
         <h2 className="font-medium mb-3">Crear un equipo</h2>
 
         <label htmlFor="team-name" className="text-sm text-zinc-500">
@@ -53,7 +60,9 @@ export function NoTeamForms() {
           required
         />
         {create.fieldErrors.name && (
-          <p className="mt-1 text-sm text-red-600">{create.fieldErrors.name[0]}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {create.fieldErrors.name[0]}
+          </p>
         )}
 
         <button
@@ -66,13 +75,21 @@ export function NoTeamForms() {
         </button>
 
         {create.error && (
-          <p role="alert" data-testid="team-create-error" className="mt-3 text-sm text-red-600">
+          <p
+            role="alert"
+            data-testid="team-create-error"
+            className="mt-3 text-sm text-red-600"
+          >
             {create.error}
           </p>
         )}
       </form>
 
-      <form onSubmit={handleJoin} className="info-panel p-6" data-testid="team-join-form">
+      <form
+        onSubmit={handleJoin}
+        className="info-panel p-6"
+        data-testid="team-join-form"
+      >
         <h2 className="font-medium mb-3">Unirme con un código</h2>
 
         <label htmlFor="join-code" className="text-sm text-zinc-500">
@@ -89,7 +106,9 @@ export function NoTeamForms() {
           required
         />
         {join.fieldErrors.joinCode && (
-          <p className="mt-1 text-sm text-red-600">{join.fieldErrors.joinCode[0]}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {join.fieldErrors.joinCode[0]}
+          </p>
         )}
 
         <button
@@ -102,7 +121,11 @@ export function NoTeamForms() {
         </button>
 
         {join.error && (
-          <p role="alert" data-testid="team-join-error" className="mt-3 text-sm text-red-600">
+          <p
+            role="alert"
+            data-testid="team-join-error"
+            className="mt-3 text-sm text-red-600"
+          >
             {join.error}
           </p>
         )}
@@ -128,6 +151,8 @@ export function TeamCard({ team }: { team: TeamDto }) {
 
   return (
     <div className="info-panel p-6" data-testid="team-card">
+      {/* Si otra cuenta se une al equipo, la tarjeta se actualiza sola mientras falten plazas. */}
+      <LiveRefresh enabled={!team.isFull} />
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">{team.name}</h2>
         {!team.hasMinimumMembers && (
@@ -139,7 +164,10 @@ export function TeamCard({ team }: { team: TeamDto }) {
 
       <div className="mt-3 flex items-center gap-2 text-sm">
         <span className="text-zinc-500">Código:</span>
-        <code data-testid="team-join-code-display" className="rounded bg-zinc-100 px-2 py-1">
+        <code
+          data-testid="team-join-code-display"
+          className="rounded bg-zinc-100 px-2 py-1"
+        >
           {team.joinCode}
         </code>
         <button
@@ -151,7 +179,9 @@ export function TeamCard({ team }: { team: TeamDto }) {
         >
           {copied ? 'Copiado' : 'Copiar'}
         </button>
-        {team.isFull && <span className="text-xs text-zinc-500">Equipo completo</span>}
+        {team.isFull && (
+          <span className="text-xs text-zinc-500">Equipo completo</span>
+        )}
       </div>
 
       <ul className="mt-4 divide-y" data-testid="team-members">
@@ -159,7 +189,9 @@ export function TeamCard({ team }: { team: TeamDto }) {
           <li key={m.userId} className="flex items-center gap-3 py-2">
             <span>{m.name ?? 'Sin nombre'}</span>
             {m.isLeader && (
-              <span className="text-xs rounded bg-zinc-100 px-2 py-0.5">Líder</span>
+              <span className="text-xs rounded bg-zinc-100 px-2 py-0.5">
+                Líder
+              </span>
             )}
           </li>
         ))}
