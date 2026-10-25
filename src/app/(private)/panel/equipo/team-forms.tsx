@@ -5,80 +5,104 @@ import { useState } from 'react';
 
 import { useAction } from '@/components/private/hooks/use-action';
 import { LiveRefresh } from '@/components/private/live-refresh';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/ui/toast';
+import { eventConfig } from '@/config/event';
 import type { TeamDto } from '@/lib/queries/dtos';
 import { createTeamAction, joinTeamAction } from '@/lib/team/actions';
+
+const { minMembers, maxMembers } = eventConfig.team;
+
+// Límites copiados de createTeamSchema (src/lib/team/actions.ts), mismo caso que draft-form:
+// el schema vive en un archivo 'use server' y no se puede importar desde el cliente.
+const NAME_MIN = 3;
+const NAME_MAX = 40;
 
 /**
  * Sin equipo todavía: dos formularios, crear o unirse.
  * Al tener éxito, refrescamos la ruta para que el Server Component (page.tsx)
  * vuelva a llamar a getMyTeam() y muestre la tarjeta real.
- * Esto ya queda listo para cuando getMyTeam deje de ser un stub.
  */
 export function NoTeamForms() {
   const router = useRouter();
+  const { showToast } = useToast();
 
   const create = useAction(createTeamAction);
   const join = useAction(joinTeamAction);
 
   const [name, setName] = useState('');
   const [joinCode, setJoinCode] = useState('');
+  const [nameError, setNameError] = useState<string>();
+  const [codeError, setCodeError] = useState<string>();
 
   function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    create.run({ name }, () => router.refresh());
+    const clean = name.trim().replace(/\s+/g, ' ');
+    // Aviso local, sin viaje al servidor; el servidor igual vuelve a validar.
+    if (clean.length < NAME_MIN) {
+      setNameError(`El nombre debe tener al menos ${NAME_MIN} caracteres.`);
+      return;
+    }
+    setNameError(undefined);
+    create.run({ name: clean }, () => {
+      showToast('Equipo creado.', 'success');
+      router.refresh();
+    });
   }
 
   function handleJoin(e: React.FormEvent) {
     e.preventDefault();
     // El backend acepta minúsculas y espacios, pero limpiamos antes de enviar
-    // para que el usuario vea de inmediato el código tal como quedará.
-    join.run({ joinCode: joinCode.trim().toUpperCase() }, () =>
-      router.refresh()
-    );
+    // para que la persona vea de inmediato el código tal como quedará.
+    const code = joinCode.trim().toUpperCase();
+    if (code === '') {
+      setCodeError('Ingresa el código de tu equipo.');
+      return;
+    }
+    setCodeError(undefined);
+    join.run({ joinCode: code }, () => {
+      showToast('Te uniste al equipo.', 'success');
+      router.refresh();
+    });
   }
 
   return (
     <div className="grid gap-6 sm:grid-cols-2">
       <form
         onSubmit={handleCreate}
-        className="info-panel p-6"
+        noValidate
+        aria-busy={create.pending}
+        className="info-panel space-y-4 p-6"
         data-testid="team-create-form"
       >
-        <h2 className="font-medium mb-3">Crear un equipo</h2>
+        <h2 className="font-medium">Crear un equipo</h2>
 
-        <label htmlFor="team-name" className="text-sm text-zinc-500">
-          Nombre del equipo
-        </label>
-        <input
+        <Input
           id="team-name"
+          label="Nombre del equipo"
           data-testid="team-create-name"
-          className="mt-1 w-full rounded border px-3 py-2"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          minLength={3}
-          maxLength={40}
-          required
+          maxLength={NAME_MAX}
+          error={nameError ?? create.fieldErrors.name?.[0]}
         />
-        {create.fieldErrors.name && (
-          <p className="mt-1 text-sm text-red-600">
-            {create.fieldErrors.name[0]}
-          </p>
-        )}
 
-        <button
+        <Button
           type="submit"
           data-testid="team-create-submit"
-          disabled={create.pending}
-          className="button-primary mt-4 w-full disabled:opacity-50"
+          loading={create.pending}
+          className="w-full"
         >
           {create.pending ? 'Creando…' : 'Crear equipo'}
-        </button>
+        </Button>
 
         {create.error && (
           <p
             role="alert"
             data-testid="team-create-error"
-            className="mt-3 text-sm text-red-600"
+            className="text-sm text-red-300"
           >
             {create.error}
           </p>
@@ -87,44 +111,40 @@ export function NoTeamForms() {
 
       <form
         onSubmit={handleJoin}
-        className="info-panel p-6"
+        noValidate
+        aria-busy={join.pending}
+        className="info-panel space-y-4 p-6"
         data-testid="team-join-form"
       >
-        <h2 className="font-medium mb-3">Unirme con un código</h2>
+        <h2 className="font-medium">Unirme con un código</h2>
 
-        <label htmlFor="join-code" className="text-sm text-zinc-500">
-          Código de invitación
-        </label>
-        <input
+        <Input
           id="join-code"
+          label="Código de invitación"
           data-testid="team-join-code"
-          className="mt-1 w-full rounded border px-3 py-2 uppercase"
           placeholder="HACK-0000"
+          autoCapitalize="characters"
+          autoComplete="off"
           value={joinCode}
-          onChange={(e) => setJoinCode(e.target.value)}
+          onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
           maxLength={20}
-          required
+          error={codeError ?? join.fieldErrors.joinCode?.[0]}
         />
-        {join.fieldErrors.joinCode && (
-          <p className="mt-1 text-sm text-red-600">
-            {join.fieldErrors.joinCode[0]}
-          </p>
-        )}
 
-        <button
+        <Button
           type="submit"
           data-testid="team-join-submit"
-          disabled={join.pending}
-          className="button-primary mt-4 w-full disabled:opacity-50"
+          loading={join.pending}
+          className="w-full"
         >
           {join.pending ? 'Uniéndote…' : 'Unirme al equipo'}
-        </button>
+        </Button>
 
         {join.error && (
           <p
             role="alert"
             data-testid="team-join-error"
-            className="mt-3 text-sm text-red-600"
+            className="text-sm text-red-300"
           >
             {join.error}
           </p>
@@ -153,46 +173,53 @@ export function TeamCard({ team }: { team: TeamDto }) {
     <div className="info-panel p-6" data-testid="team-card">
       {/* Si otra cuenta se une al equipo, la tarjeta se actualiza sola mientras falten plazas. */}
       <LiveRefresh enabled={!team.isFull} />
-      <div className="flex items-center justify-between">
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-medium">{team.name}</h2>
-        {!team.hasMinimumMembers && (
-          <span className="text-xs rounded bg-amber-100 text-amber-800 px-2 py-1">
-            Falta gente para el mínimo
-          </span>
+        {team.isFull ? (
+          <Badge tone="success">Equipo completo</Badge>
+        ) : team.hasMinimumMembers ? (
+          <Badge tone="brand">Mínimo alcanzado</Badge>
+        ) : (
+          <Badge tone="warning">Falta gente para el mínimo</Badge>
         )}
       </div>
 
-      <div className="mt-3 flex items-center gap-2 text-sm">
-        <span className="text-zinc-500">Código:</span>
+      <p
+        data-testid="team-member-count"
+        className="mt-1 text-sm text-slate-400"
+      >
+        {team.memberCount} de {maxMembers} integrantes (mínimo {minMembers})
+      </p>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+        <span className="text-slate-400">Código:</span>
         <code
           data-testid="team-join-code-display"
-          className="rounded bg-zinc-100 px-2 py-1"
+          className="rounded bg-white/10 px-2 py-1"
         >
           {team.joinCode}
         </code>
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           data-testid="team-copy-code"
           onClick={handleCopy}
           disabled={team.isFull}
-          className="text-link text-sm disabled:opacity-50"
         >
           {copied ? 'Copiado' : 'Copiar'}
-        </button>
-        {team.isFull && (
-          <span className="text-xs text-zinc-500">Equipo completo</span>
-        )}
+        </Button>
+        <span role="status" className="sr-only">
+          {copied ? 'Código copiado' : ''}
+        </span>
       </div>
 
-      <ul className="mt-4 divide-y" data-testid="team-members">
+      <ul className="mt-4 divide-y divide-white/10" data-testid="team-members">
         {team.members.map((m) => (
           <li key={m.userId} className="flex items-center gap-3 py-2">
             <span>{m.name ?? 'Sin nombre'}</span>
-            {m.isLeader && (
-              <span className="text-xs rounded bg-zinc-100 px-2 py-0.5">
-                Líder
-              </span>
-            )}
+            {m.isLeader && <Badge tone="neutral">Líder</Badge>}
           </li>
         ))}
       </ul>
