@@ -55,6 +55,9 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
   // solo evita el viaje de red cuando el problema ya se ve en el navegador.
   const [localErrors, setLocalErrors] = useState<Partial<Record<keyof FormState, string>>>({});
 
+  // Bloqueo visual: cuando el plazo ya cerró, el formulario es de solo lectura.
+  const isClosed = project?.submissionWindow.status === 'CLOSED';
+
   function update<K extends keyof FormState>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
   }
@@ -83,6 +86,7 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (isClosed) return; // defensa adicional: el servidor también lo rechaza
     if (!validate()) return; // avisa antes de enviar, nunca llega al servidor
     run(form, () => router.refresh());
   }
@@ -95,6 +99,51 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
     description: 'Descripción',
     pitchDeck: 'Pitch deck',
   };
+
+  if (isClosed) {
+    return (
+      <div className="space-y-5 max-w-2xl">
+        <div
+          data-testid="draft-closed-banner"
+          className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+        >
+          Las entregas ya cerraron. El borrador está en modo solo lectura.
+        </div>
+        {project && (
+          <dl className="space-y-4 text-sm">
+            {(['title', 'summary', 'description'] as const).map((field) => (
+              <div key={field}>
+                <dt className="font-medium text-zinc-500 capitalize">{FIELD_LABELS[field] ?? field}</dt>
+                <dd data-testid={`project-${field}-readonly`} className="mt-1 whitespace-pre-wrap text-zinc-200">
+                  {project[field] || <span className="italic text-zinc-500">Sin contenido</span>}
+                </dd>
+              </div>
+            ))}
+            {(['repositoryUrl', 'demoUrl', 'videoUrl'] as const).map((field) => (
+              project[field] ? (
+                <div key={field}>
+                  <dt className="font-medium text-zinc-500">
+                    {field === 'repositoryUrl' ? 'Repositorio' : field === 'demoUrl' ? 'Demo' : 'Video'}
+                  </dt>
+                  <dd className="mt-1">
+                    <a
+                      href={project[field]!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-link text-sm"
+                      data-testid={`project-${field}-readonly`}
+                    >
+                      {project[field]}
+                    </a>
+                  </dd>
+                </div>
+              ) : null
+            ))}
+          </dl>
+        )}
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} data-testid="project-draft-form" className="space-y-5 max-w-2xl">

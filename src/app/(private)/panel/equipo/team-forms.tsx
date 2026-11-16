@@ -1,11 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useAction } from '@/components/private/hooks/use-action';
 import type { TeamDto } from '@/lib/queries/dtos';
 import { createTeamAction, joinTeamAction } from '@/lib/team/actions';
+
+/** Intervalo de refresco automático de la lista de miembros (ms). */
+const TEAM_REFRESH_INTERVAL_MS = 15_000;
 
 /**
  * Sin equipo todavía: dos formularios, crear o unirse.
@@ -111,9 +114,22 @@ export function NoTeamForms() {
   );
 }
 
-/** Ya tienes equipo: la tarjeta con integrantes y el botón de copiar código. */
+/** Ya tienes equipo: la tarjeta con integrantes y el botón de copiar código.
+ *  Se refresca automáticamente cada TEAM_REFRESH_INTERVAL_MS para mostrar
+ *  nuevos integrantes sin que el líder tenga que recargar la página a mano.
+ */
 export function TeamCard({ team }: { team: TeamDto }) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
+
+  // Refresco automático: llama a router.refresh() periódicamente para que el
+  // Server Component vuelva a ejecutar getMyTeam() y actualice la lista.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      router.refresh();
+    }, TEAM_REFRESH_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [router]);
 
   async function handleCopy() {
     try {

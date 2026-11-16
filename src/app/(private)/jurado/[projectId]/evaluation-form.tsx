@@ -4,26 +4,9 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useAction } from '@/components/private/hooks/use-action';
-import { criteria, scoreRange, type CriterionField } from '@/config/criteria';
+import { calculateWeightedScore, criteria, scoreRange, type CriterionField } from '@/config/criteria';
 import { saveEvaluationAction } from '@/lib/evaluation/actions';
 import type { JudgeProjectDetailDto } from '@/lib/queries/dtos';
-
-/**
- * CONTRATO pendiente con BK: calculateWeightedScore vive privada (no exportada)
- * en src/lib/project/queries.ts. Pedido: exportarla (o moverla a
- * src/config/criteria.ts, que ya es público) para que FE la importe en vez de
- * repetir la fórmula. Mientras tanto, esta copia usa los mismos pesos de
- * src/config/criteria.ts (que sí es público) y el mismo redondeo
- * (Math.round(x * 100) / 100), así que el resultado debe coincidir con el de
- * BK siempre que nadie cambie uno de los dos lados sin el otro.
- */
-function calculateWeightedScoreLocal(scores: Record<CriterionField, number>): number {
-  const weighted = criteria.reduce(
-    (total, c) => total + scores[c.field] * c.weight,
-    0,
-  );
-  return Math.round((weighted / 100) * 100) / 100;
-}
 
 type ScoresState = Record<CriterionField, number>;
 
@@ -41,7 +24,7 @@ export function EvaluationForm({ project }: { project: JudgeProjectDetailDto }) 
   const [scores, setScores] = useState<ScoresState>(initial);
   const [comment, setComment] = useState(project.myEvaluation?.comment ?? '');
 
-  const liveScore = useMemo(() => calculateWeightedScoreLocal(scores), [scores]);
+  const liveScore = useMemo(() => calculateWeightedScore(scores), [scores]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

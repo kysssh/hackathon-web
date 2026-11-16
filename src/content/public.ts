@@ -13,7 +13,7 @@ export const milestones = [
 
 export const faqs = [
   { question: '¿Cómo formo mi equipo?', answer: 'Ingresa con Google o GitHub. El líder crea el equipo y comparte el código HACK-XXXX para que los demás se unan. Cada equipo puede tener entre 2 y 5 integrantes.' },
-  { question: '¿Qué debo entregar?', answer: 'Una ficha del proyecto con título, resumen de hasta 280 caracteres, descripción, repositorio público, demo desplegada, video pitch y un pitch deck en PDF de hasta 25 MB.' },
+  { question: '¿Qué debo entregar?', answer: 'Una ficha del proyecto con título, resumen de hasta 280 caracteres, descripción y un pitch deck en PDF de hasta 25 MB (obligatorios). Además, puedes incluir enlaces a repositorio público, demo desplegada y video de presentación.' },
   { question: '¿Quién puede enviar el proyecto?', answer: 'Solo el líder puede enviarlo. El equipo debe tener al menos dos integrantes y completar todos los campos y archivos obligatorios antes del cierre de entregables.' },
   { question: '¿Cómo se evalúan los proyectos?', answer: 'El jurado califica innovación (25 %), tecnología (30 %), impacto (25 %) y presentación (20 %) en una escala de 1 a 10.' },
   { question: '¿Puedo modificar el proyecto después de enviarlo?', answer: 'Puedes actualizarlo y reenviarlo mientras la ventana de entregables esté abierta. Al llegar la fecha límite, la ficha queda en modo de lectura.' },

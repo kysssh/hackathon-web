@@ -1,4 +1,4 @@
-﻿# Revisión manual para DP
+﻿# Revisión manual
 
 Con la aplicación en ejecución y datos de prueba, realizar las siguientes acciones. Marcar cada punto como funciona, falla o no se pudo probar. No usar datos reales de producción para estas pruebas.
 
