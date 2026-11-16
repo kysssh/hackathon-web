@@ -9,6 +9,7 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "typecheck": "next typegen && tsc --noEmit",
+    "test": "tsx --test \"test/**/*.test.ts\"",
     "db:seed": "prisma db seed"
   },
   "dependencies": {
