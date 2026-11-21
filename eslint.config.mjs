@@ -15,16 +15,23 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
-    files: ["src/app/**/*.{ts,tsx}"],
+    files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              group: ["*/lib/db", "@/lib/db", "**/lib/db"],
+              group: [
+                "*/lib/db",
+                "@/lib/db",
+                "**/lib/db",
+                "@prisma/client",
+                "@prisma/*",
+                "**/generated/prisma/**",
+              ],
               message:
-                  "No importes lib/db directamente desde una página. Usa una server action en su lugar.",
+                "No importes lib/db ni Prisma directamente desde páginas o componentes. Usa funciones de consultas (BD) o server actions (BK) en su lugar.",
             },
           ],
         },

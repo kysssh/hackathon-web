@@ -48,3 +48,15 @@ export const totalWeight = criteria.reduce((sum, c) => sum + c.weight, 0);
 if (totalWeight !== 100) {
   throw new Error(`Los pesos de src/config/criteria.ts deben sumar 100 (ahora suman ${totalWeight}).`);
 }
+
+/**
+ * Calcula el puntaje ponderado a partir de las cuatro notas.
+ * Fórmula: Σ(nota × peso) / 100. Redondeado a 2 decimales.
+ * Usable tanto en el cliente (EvaluationForm) como en el servidor (queries/actions).
+ */
+export function calculateWeightedScore(
+  scores: Record<CriterionField, number>,
+): number {
+  const weighted = criteria.reduce((total, c) => total + scores[c.field] * c.weight, 0);
+  return Math.round((weighted / 100) * 100) / 100;
+}
