@@ -10,7 +10,7 @@ Implementadas las acciones createUploadUrlAction, confirmUploadAction, deletePro
 4. Confirmar con los mismos metadatos y storagePath. La ruta es opaca y firmada; no se debe modificar.
 5. Mostrar los errores del contrato. Se admite un PITCH_DECK, una COVER_IMAGE y cinco EXTRA. Para reemplazar un archivo unico, eliminar primero el anterior.
 
-El envio requiere lider, minimo de dos integrantes, titulo, resumen, descripcion, pitch confirmado y plazo abierto. Cada reenvio incrementa submissionCount.
+El envio requiere lider, el minimo configurado de cuatro integrantes, titulo, resumen, descripcion, pitch confirmado y plazo abierto. Cada reenvio incrementa submissionCount.
 
 La evaluacion requiere rol JUDGE y proyecto enviado y visible. Se comprueba el cierre despues del bloqueo. El upsert guarda una sola fila por proyecto y jurado. El resultado ponderado se calcula con las notas guardadas y pesos 25/30/25/20; el esquema no tiene una columna de promedio.
 

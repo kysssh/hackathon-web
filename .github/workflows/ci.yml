@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  verify:
+    name: Verificación de Integridad (Lint, Typecheck, Test, Build)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar cliente de Prisma
+        run: npx prisma generate
+
+      - name: Verificar tipos de TypeScript
+        run: npm run typecheck
+
+      - name: Validar reglas de ESLint
+        run: npm run lint
+
+      - name: Ejecutar suite de pruebas unitarias
+        run: npm test
+
+      - name: Compilar aplicación Next.js
+        run: npm run build
+        env:
+          NEXTAUTH_URL: https://hackathon.local
+          AUTH_SECRET: ci-dummy-secret-at-least-32-characters-long
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+          SUPABASE_URL: https://dummy.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: dummy-pub-key
+          SUPABASE_SECRET_KEY: dummy-sec-key
+          SUPABASE_JWKS_URL: https://dummy.supabase.co/auth/v1/.well-known/jwks.json

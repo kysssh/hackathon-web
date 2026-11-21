@@ -45,7 +45,7 @@ function LoginForm() {
             GitHub. No necesitas crear otra contraseña.
           </p>
           <div className="mt-9 flex flex-wrap gap-4 text-sm text-purple-200">
-            <span>✳ Equipos de 2 a 5</span>
+            <span>✳ Equipos de 4 integrantes</span>
             <span>✳ Código HACK-XXXX</span>
             <span>✳ Cuatro criterios públicos</span>
           </div>

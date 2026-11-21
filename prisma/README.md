@@ -79,8 +79,8 @@ de desarrollo. No es necesario crear otra migración para cargar la semilla.
 
 ## 3. Datos que backend puede usar
 
-En una base vacía, la semilla crea **13 usuarios, 3 equipos, 9 membresías,
-3 proyectos, 3 evaluaciones y 1 fila de `event_state`**. No crea cuentas OAuth.
+En una base vacía, la semilla crea **13 usuarios, 3 equipos, 8 membresías,
+3 proyectos, 2 evaluaciones y 1 fila de `event_state`**. No crea cuentas OAuth.
 
 | Correo                        | ID en `users`      | Rol / escenario                  |
 | ----------------------------- | ------------------ | -------------------------------- |
@@ -92,24 +92,25 @@ En una base vacía, la semilla crea **13 usuarios, 3 equipos, 9 membresías,
 | `lider.ecoruta@prueba.test`   | `seed-eco-leader`  | PARTICIPANT, líder de Eco Ruta   |
 | `lider.solodev@prueba.test`   | `seed-solo-leader` | PARTICIPANT, líder de Solo Dev   |
 
-Los miembros adicionales usan `byteforce2@prueba.test` hasta
-`byteforce5@prueba.test` (IDs `seed-byte-2` a `seed-byte-5`), y
+Los miembros adicionales de Byte Force usan `byteforce2@prueba.test` hasta
+`byteforce4@prueba.test` (IDs `seed-byte-2` a `seed-byte-4`). `byteforce5@prueba.test`
+es un participante adicional sin equipo. Eco Ruta incluye
 `ecoruta2@prueba.test` y `ecoruta3@prueba.test` (IDs `seed-eco-2` y `seed-eco-3`).
 
 | Equipo     | ID                     | Código      | Integrantes | Condición                      |
 | ---------- | ---------------------- | ----------- | ----------- | ------------------------------ |
-| Byte Force | `seed-team-byte-force` | `HACK-29XJ` | 5           | Lleno                          |
-| Eco Ruta   | `seed-team-eco-ruta`   | `HACK-7KQM` | 3           | Cumple mínimo; admite miembros |
-| Solo Dev   | `seed-team-solo-dev`   | `HACK-9PRD` | 1           | Debajo del mínimo              |
+| Byte Force | `seed-team-byte-force` | `HACK-29XJ` | 4           | Completo                       |
+| Eco Ruta   | `seed-team-eco-ruta`   | `HACK-7KQM` | 3           | Incompleto; admite un miembro  |
+| Solo Dev   | `seed-team-solo-dev`   | `HACK-9PRD` | 1           | Incompleto                     |
 
 | Proyecto / slug                         | ID                        | Estado                   | Evaluaciones | Promedio ponderado |
 | --------------------------------------- | ------------------------- | ------------------------ | ------------ | ------------------ |
 | Byte Force Access / `byte-force-access` | `seed-project-byte-force` | Enviado y visible        | 2            | 8.65               |
-| Eco Ruta / `eco-ruta`                   | `seed-project-eco-ruta`   | Enviado y oculto         | 1            | 8.00               |
+| Eco Ruta / `eco-ruta`                   | `seed-project-eco-ruta`   | Borrador oculto          | 0            | `null`             |
 | Solo Dev Lab / `solo-dev-lab`           | `seed-project-solo-dev`   | Borrador marcado visible | 0            | `null`             |
 
 La galería y el jurado muestran únicamente Byte Force. Organización muestra
-Byte Force, Eco Ruta y Solo Dev, ordenados por promedio, con el no evaluado al final.
+Byte Force, Eco Ruta y Solo Dev, ordenados por promedio, con los no evaluados al final.
 Para Byte Force, jurado 1 tiene 8.75 y jurado 2 tiene 8.55. Los pesos salen de
 `src/config/criteria.ts`: innovación 25 %, tecnología 30 %, impacto 25 % y
 presentación 20 %.

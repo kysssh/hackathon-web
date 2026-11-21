@@ -168,11 +168,12 @@ Estado global de publicación del evento.
 ejecutarse repetidas veces en una base de desarrollo: actualiza los usuarios y
 equipos de prueba, recrea sus membresías y garantiza la fila de `event_state`.
 
-La semilla crea los roles y escenarios acordados: un organizador, dos jurados, un
-participante sin equipo, **Byte Force** (`HACK-29XJ`, 5 integrantes), **Eco Ruta**
+La semilla crea los roles y escenarios acordados: un organizador, dos jurados, dos
+participantes sin equipo, **Byte Force** (`HACK-29XJ`, 4 integrantes), **Eco Ruta**
 (`HACK-7KQM`, 3 integrantes) y **Solo Dev** (`HACK-9PRD`, 1 integrante).
 
 También crea tres proyectos para verificar las consultas: Byte Force está enviado y
-visible; Eco Ruta está enviado pero oculto; Solo Dev permanece como borrador aunque
-esté marcado como visible. Las evaluaciones de los dos primeros permiten comprobar
-el puntaje ponderado, el promedio y el orden del panel de organización.
+visible; Eco Ruta permanece como borrador porque su equipo todavía no alcanza los
+4 integrantes; Solo Dev permanece como borrador aunque esté marcado como visible.
+Las dos evaluaciones de Byte Force permiten comprobar el puntaje ponderado, el
+promedio y el orden del panel de organización.

@@ -1,15 +1,42 @@
 import type { MetadataRoute } from 'next';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hackathon.example.com';
+import { listGalleryProjects } from '@/lib/project/queries';
+
+export const dynamic = 'force-dynamic';
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const siteUrl = process.env.NEXTAUTH_URL;
+  if (!siteUrl) {
+    throw new Error('NEXTAUTH_URL es obligatoria para generar sitemap.xml.');
+  }
   const now = new Date();
 
-  const routes = ['', '/informacion', '/cronograma', '/mentores-y-jurado', '/criterios', '/faq', '/galeria'];
+  const publicRoutes = [
+    '',
+    '/informacion',
+    '/cronograma',
+    '/mentores-y-jurado',
+    '/criterios',
+    '/faq',
+    '/galeria',
+  ];
 
-  return routes.map((route) => ({
-    url: `${baseUrl}${route}`,
+  const routes: MetadataRoute.Sitemap = publicRoutes.map((route) => ({
+    url: `${siteUrl}${route}`,
     lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: route === '' ? 1 : 0.8,
+    changeFrequency: route === '' || route === '/galeria' ? 'daily' : 'weekly',
+    priority: route === '' ? 1 : route === '/galeria' ? 0.9 : 0.7,
   }));
+
+  const projects = await listGalleryProjects({ filter: 'ALL' });
+  for (const project of projects) {
+    routes.push({
+      url: `${siteUrl}/galeria/${encodeURIComponent(project.slug)}`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    });
+  }
+
+  return routes;
 }

@@ -62,7 +62,7 @@ const users = [
   },
   {
     id: 'seed-byte-5',
-    name: 'Byte Force 5',
+    name: 'Participante adicional',
     email: 'byteforce5@prueba.test',
     role: Role.PARTICIPANT,
   },
@@ -103,7 +103,6 @@ const teams = [
       'seed-byte-2',
       'seed-byte-3',
       'seed-byte-4',
-      'seed-byte-5',
     ],
   },
   {
@@ -152,8 +151,8 @@ const projects = [
     repositoryUrl: 'https://github.com/prueba/eco-ruta',
     demoUrl: 'https://eco-ruta.prueba.test',
     videoUrl: null,
-    submittedAt: new Date('2026-11-16T20:30:00.000Z'),
-    submissionCount: 1,
+    submittedAt: null,
+    submissionCount: 0,
     isVisibleInGallery: false,
     isFinalist: false,
     isWinner: false,
@@ -199,16 +198,6 @@ const evaluations = [
     impactScore: 9,
     presentationScore: 8,
     comment: 'Buen equilibrio entre impacto y viabilidad técnica.',
-  },
-  {
-    id: 'seed-evaluation-eco-judge-1',
-    projectId: 'seed-project-eco-ruta',
-    judgeId: 'seed-judge-1',
-    innovationScore: 7,
-    technologyScore: 8,
-    impactScore: 9,
-    presentationScore: 8,
-    comment: 'El impacto está claro; falta fortalecer la diferenciación.',
   },
 ] as const;
 
