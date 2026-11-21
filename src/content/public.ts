@@ -5,16 +5,21 @@ export const tracks = [
 ] as const;
 
 export const milestones = [
-  { title: 'Lanzamiento y equipos', description: 'Conoce los retos, reúne perfiles complementarios y registra a tu equipo.' },
-  { title: 'Mentorías y desarrollo', description: 'Da forma a la idea, prueba soluciones y prepara el prototipo.' },
-  { title: 'Cierre de entregables', description: 'Completa la ficha, el repositorio, la demo, el video y el pitch deck.' },
-  { title: 'Evaluación y Demo Day', description: 'El jurado aplica la rúbrica y los proyectos se presentan a la comunidad.' },
+  { date: '10 Nov', title: 'Anuncio oficial', description: 'Publicación de las bases y convocatoria para estudiantes universitarios de distintas instituciones.' },
+  { date: '17 Nov', title: 'Envío de invitaciones', description: 'Distribución oficial a universidades y pre-registro para más de 20 equipos participantes.' },
+  { date: '24 Nov', title: 'Kickoff e inauguración', description: 'Jornada inaugural en la Universidad Nacional de Ingeniería (UNI) y cierre de conformación de equipos.' },
+  { date: '27–28 Nov', title: 'Primer entregable', description: 'Subida del primer avance técnico y selección de los 15 equipos clasificados.' },
+  { date: '01 Dic', title: 'Segundo entregable', description: 'Presentación del prototipo funcional y selección de los 10 mejores equipos.' },
+  { date: '04 Dic', title: 'Semifinal virtual', description: 'Evaluación remota con el jurado y selección de los 5 equipos finalistas.' },
+  { date: '05 Dic', title: 'Demo Day presencial', description: 'Presentación final de proyectos ante el jurado y premiación oficial en la UNI.' },
 ] as const;
 
 export const faqs = [
-  { question: '¿Cómo formo mi equipo?', answer: 'Ingresa con Google o GitHub. El líder crea el equipo y comparte el código HACK-XXXX para que los demás se unan. Cada equipo puede tener entre 2 y 5 integrantes.' },
+  { question: '¿Quiénes pueden participar?', answer: 'La convocatoria está dirigida a estudiantes universitarios de distintas universidades del país con ganas de construir soluciones tecnológicas y de impacto cultural.' },
+  { question: '¿Cómo formo mi equipo?', answer: 'Ingresa con Google o GitHub. El líder crea el equipo y comparte el código HACK-XXXX. Cada equipo debe estar conformado por exactamente 4 integrantes.' },
+  { question: '¿Dónde se realizará el evento?', answer: 'La sede principal es la Universidad Nacional de Ingeniería (UNI), donde se celebrarán el Kickoff inaugural y el Demo Day final, complementado con fases intermedias y semifinales virtuales.' },
   { question: '¿Qué debo entregar?', answer: 'Una ficha del proyecto con título, resumen de hasta 280 caracteres, descripción y un pitch deck en PDF de hasta 25 MB (obligatorios). Además, puedes incluir enlaces a repositorio público, demo desplegada y video de presentación.' },
-  { question: '¿Quién puede enviar el proyecto?', answer: 'Solo el líder puede enviarlo. El equipo debe tener al menos dos integrantes y completar todos los campos y archivos obligatorios antes del cierre de entregables.' },
+  { question: '¿Quién puede enviar el proyecto?', answer: 'Solo el líder puede enviarlo. El equipo debe contar con sus 4 integrantes completos y tener todos los campos y archivos obligatorios listos antes del cierre de entregables.' },
   { question: '¿Cómo se evalúan los proyectos?', answer: 'El jurado califica innovación (25 %), tecnología (30 %), impacto (25 %) y presentación (20 %) en una escala de 1 a 10.' },
   { question: '¿Puedo modificar el proyecto después de enviarlo?', answer: 'Puedes actualizarlo y reenviarlo mientras la ventana de entregables esté abierta. Al llegar la fecha límite, la ficha queda en modo de lectura.' },
   { question: '¿Dónde podré ver los proyectos?', answer: 'La galería pública mostrará únicamente los proyectos que la organización haya autorizado para publicación. Los distintivos de finalista y ganador aparecerán cuando se publiquen los resultados.' },

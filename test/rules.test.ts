@@ -82,13 +82,13 @@ describe('Reglas del Proyecto (Project Rules)', () => {
   });
 
   it('determina correctamente el estado de la ventana de entregas (SubmissionWindow)', () => {
-    const before = getSubmissionWindow('2026-10-01T00:00:00-05:00');
+    const before = getSubmissionWindow('2026-11-15T00:00:00-05:00');
     assert.equal(before.status, 'NOT_OPEN');
 
-    const during = getSubmissionWindow('2026-11-10T12:00:00-05:00');
+    const during = getSubmissionWindow('2026-11-26T12:00:00-05:00');
     assert.equal(during.status, 'OPEN');
 
-    const after = getSubmissionWindow('2026-12-01T00:00:00-05:00');
+    const after = getSubmissionWindow('2026-12-05T00:00:00-05:00');
     assert.equal(after.status, 'CLOSED');
   });
 });
