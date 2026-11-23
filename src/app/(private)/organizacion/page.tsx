@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { formatScore } from '@/components/private/format-score';
 import { LiveRefresh } from '@/components/private/live-refresh';
+import { ParticipantStats } from '@/components/private/participant-stats';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
   Table,
@@ -15,6 +16,7 @@ import { formatEventDate } from '@/dates';
 import { requireRole } from '@/lib/auth/session';
 import { getEventState } from '@/lib/event/queries';
 import { listProjectsForOrganizer } from '@/lib/project/queries';
+import { getParticipantStatsForOrganizer } from '@/lib/team/queries';
 
 import { FlagSwitch } from './flag-switch';
 import { PublicationCard } from './publication-card';
@@ -27,9 +29,10 @@ function plural(n: number, one: string, many: string) {
 
 export default async function OrganizacionPage() {
   await requireRole(['ORGANIZER']);
-  const [projects, eventState] = await Promise.all([
+  const [projects, eventState, stats] = await Promise.all([
     listProjectsForOrganizer(),
     getEventState(),
+    getParticipantStatsForOrganizer(),
   ]);
 
   // Lo que el público verá al publicar: solo cuentan los proyectos visibles en la galería.
@@ -85,6 +88,8 @@ export default async function OrganizacionPage() {
       <LiveRefresh intervalMs={30_000} />
 
       <h1 className="text-xl font-semibold">Panel de organización</h1>
+
+      <ParticipantStats stats={stats} showTeamsLink />
 
       <PublicationCard
         finalists={{

@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 import { NavLinks, type NavItem } from '@/components/private/nav-links';
 import { ROLE_LABEL } from '@/components/private/role-label';
 import { SignOutButton } from '@/components/private/sign-out-button';
 import { Badge } from '@/components/ui/badge';
 import { ToastProvider } from '@/components/ui/toast';
-import { requireUser } from '@/lib/auth/session';
+import { needsProfile, requireUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +17,8 @@ export default async function PrivateLayout({
   children: ReactNode;
 }) {
   const user = await requireUser();
+  // Recién registrado con Google/GitHub: primero nombres, apellidos y universidad.
+  if (needsProfile(user)) redirect('/completar-perfil');
 
   // Los enlaces dependen del rol: Jurado solo para jurados, Organización solo para organizadores.
   const items: NavItem[] = [
@@ -62,9 +66,14 @@ export default async function PrivateLayout({
                 {(user.name ?? user.email).charAt(0).toUpperCase()}
               </span>
             )}
-            <span className="max-w-[10rem] truncate sm:max-w-xs">
+            <Link
+              href="/completar-perfil"
+              title="Editar mi perfil"
+              data-testid="header-profile-link"
+              className="max-w-[10rem] truncate hover:underline sm:max-w-xs"
+            >
               {user.name ?? user.email}
-            </span>
+            </Link>
             <Badge tone="brand" data-testid="user-role">
               {ROLE_LABEL[user.role]}
             </Badge>

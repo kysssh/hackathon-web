@@ -2,7 +2,8 @@ export type TeamDto = {
   id: string;
   name: string;
   joinCode: string;
-  members: { userId: string; name: string | null; image: string | null; isLeader: boolean }[];
+  /** fullName: nombres y apellidos del perfil (o el nombre de OAuth si aún no los completó). */
+  members: { userId: string; name: string | null; fullName: string; university: string | null; image: string | null; isLeader: boolean }[];
   memberCount: number;
   isFull: boolean;
   hasMinimumMembers: boolean;
@@ -40,7 +41,7 @@ export type GalleryProjectDetailDto = GalleryProjectCardDto & {
   repositoryUrl: string | null;
   demoUrl: string | null;
   videoUrl: string | null;
-  members: { name: string | null; image: string | null }[];
+  members: { name: string | null; university: string | null; image: string | null }[];
 };
 
 export type JudgeProjectRowDto = {
@@ -80,14 +81,39 @@ export type OrganizerProjectDetailDto = OrganizerProjectRowDto & {
   videoUrl: string | null;
 };
 
+export type OrganizerTeamMemberDto = {
+  userId: string;
+  fullName: string;
+  university: string | null;
+  email: string;
+  isLeader: boolean;
+};
+
 export type OrganizerTeamRowDto = {
   teamId: string;
   name: string;
   joinCode: string;
   memberCount: number;
   leaderEmail: string;
+  members: OrganizerTeamMemberDto[];
   projectTitle: string | null;
   submittedAt: string | null;
+};
+
+export type OrganizerParticipantStatsDto = {
+  /** Equipos creados. */
+  teamCount: number;
+  /** Participantes que ya están dentro de un equipo. */
+  participantsInTeams: number;
+  /** Participantes que ingresaron a la plataforma (con o sin equipo). */
+  registeredParticipants: number;
+  /** Participantes que ingresaron pero aún no tienen equipo. */
+  participantsWithoutTeam: number;
+  /** Participantes que todavía no completaron nombres, apellidos y universidad. */
+  incompleteProfiles: number;
+  /** Equipos con el mínimo de integrantes / completos. */
+  teamsWithMinimum: number;
+  fullTeams: number;
 };
 
 export type GalleryFilter = "ALL" | "FINALISTS" | "WINNERS";
