@@ -91,7 +91,7 @@ export default function TerminosPage() {
           <div>
             <h2 className="text-xl font-bold text-white">8. Limitación de responsabilidad</h2>
             <p className="mt-3">
-              La plataforma se proporciona "tal como está". Núcleo Centro Cultural no garantiza que el
+              La plataforma se proporciona &ldquo;tal como está&rdquo;. Núcleo Centro Cultural no garantiza que el
               servicio esté disponible de forma ininterrumpida ni libre de errores. En la medida permitida
               por la ley, no nos hacemos responsables de daños directos, indirectos o consecuentes
               derivados del uso o la imposibilidad de uso de la plataforma.
