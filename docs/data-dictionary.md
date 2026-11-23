@@ -42,6 +42,9 @@ Usuarios autenticables y sus roles dentro del hackathon.
 | ------------ | -------------- | ---- | ------------------------- | --------------------------- |
 | `id`         | `TEXT`         | No   | PK; `cuid()`              | Identificador del usuario.  |
 | `name`       | `TEXT`         | Sí   | —                         | Nombre mostrado.            |
+| `first_name` | `TEXT`         | Sí   | —                         | Nombres (perfil completado tras el primer ingreso). |
+| `last_name`  | `TEXT`         | Sí   | —                         | Apellidos (perfil).         |
+| `university` | `TEXT`         | Sí   | —                         | Universidad de procedencia (perfil). |
 | `email`      | `TEXT`         | No   | Único                     | Correo del usuario.         |
 | `image`      | `TEXT`         | Sí   | —                         | URL de la imagen de perfil. |
 | `role`       | `Role`         | No   | `PARTICIPANT`             | Rol de autorización.        |
