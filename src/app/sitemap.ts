@@ -19,6 +19,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/criterios',
     '/faq',
     '/galeria',
+    '/privacidad',
+    '/terminos',
   ];
 
   const routes: MetadataRoute.Sitemap = publicRoutes.map((route) => ({

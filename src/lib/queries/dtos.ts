@@ -1,7 +1,7 @@
 export type TeamDto = {
   id: string;
   name: string;
-  joinCode: string;
+  joinCode: string | null;
   /** fullName: nombres y apellidos del perfil (o el nombre de OAuth si aún no los completó). */
   members: { userId: string; name: string | null; fullName: string; university: string | null; image: string | null; isLeader: boolean }[];
   memberCount: number;
@@ -92,7 +92,6 @@ export type OrganizerTeamMemberDto = {
 export type OrganizerTeamRowDto = {
   teamId: string;
   name: string;
-  joinCode: string;
   memberCount: number;
   leaderEmail: string;
   members: OrganizerTeamMemberDto[];

@@ -70,7 +70,6 @@ export default async function OrganizacionEquiposPage() {
           <TableHeader>
             <tr>
               <TableHead>Equipo</TableHead>
-              <TableHead>Código</TableHead>
               <TableHead>Integrantes</TableHead>
               <TableHead>Nombres y universidad</TableHead>
               <TableHead>Líder</TableHead>
@@ -82,11 +81,6 @@ export default async function OrganizacionEquiposPage() {
             {teams.map((t) => (
               <TableRow key={t.teamId} data-testid={`org-team-row-${t.teamId}`}>
                 <TableCell className="font-medium">{t.name}</TableCell>
-                <TableCell>
-                  <code className="rounded bg-white/10 px-2 py-0.5">
-                    {t.joinCode}
-                  </code>
-                </TableCell>
                 <TableCell className="align-top">
                   <MembersBadge count={t.memberCount} />
                 </TableCell>

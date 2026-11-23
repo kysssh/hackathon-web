@@ -23,7 +23,16 @@ export default async function PrivateLayout({
   // Los enlaces dependen del rol: Jurado solo para jurados, Organización solo para organizadores.
   const items: NavItem[] = [
     { href: '/panel', label: 'Panel', match: ['/panel'] },
+    { href: '/informacion', label: 'Información' },
+    { href: '/cronograma', label: 'Cronograma' },
+    { href: '/galeria', label: 'Galería', match: ['/galeria'] },
   ];
+  if (user.role === 'PARTICIPANT')
+    items.splice(1, 0, {
+      href: '/panel/equipo',
+      label: 'Mi equipo',
+      match: ['/panel/equipo'],
+    });
   if (user.role === 'JUDGE')
     items.push({ href: '/jurado', label: 'Jurado', match: ['/jurado'] });
   if (user.role === 'ORGANIZER') {
@@ -44,7 +53,7 @@ export default async function PrivateLayout({
           Saltar al contenido
         </a>
 
-        <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-white/10 bg-[#120826] px-4 py-3 sm:px-6 sm:py-4">
+        <header className="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-white/10 bg-[#120826]/95 px-4 py-3 backdrop-blur-xl sm:px-6 sm:py-4">
           <NavLinks label="Navegación privada" items={items} />
 
           <div className="flex flex-wrap items-center gap-3 text-sm">

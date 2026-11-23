@@ -1,7 +1,8 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 import { useAction } from '@/components/private/hooks/use-action';
 import { Button } from '@/components/ui/button';
@@ -25,9 +26,24 @@ const DEFAULT_AUTH_ERROR =
 
 function LoginForm() {
   const params = useSearchParams();
+  const router = useRouter();
+  const { status } = useSession();
   const next = params.get('next') ?? '/panel';
   const authErrorCode = params.get('error');
   const { run, pending, error } = useAction(signInAction);
+
+  useEffect(() => {
+    if (status === 'authenticated') router.replace('/panel');
+  }, [router, status]);
+
+  if (status !== 'unauthenticated') {
+    return (
+      <div role="status" className="section-wrap">
+        <span className="sr-only">Comprobando tu sesión…</span>
+        <Skeleton className="mx-auto h-64 w-full max-w-md" />
+      </div>
+    );
+  }
 
   const handleSignIn = (provider: 'google' | 'github') =>
     run({ provider, next });
