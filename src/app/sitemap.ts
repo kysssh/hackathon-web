@@ -5,9 +5,10 @@ import { listGalleryProjects } from '@/lib/project/queries';
 export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXTAUTH_URL;
+  const siteUrl = process.env.NEXTAUTH_URL ?? process.env.AUTH_URL ?? '';
   if (!siteUrl) {
-    throw new Error('NEXTAUTH_URL es obligatoria para generar sitemap.xml.');
+    // Si no hay URL configurada, devolvemos sitemap mínimo sin crashear el sitio.
+    return [];
   }
   const now = new Date();
 
