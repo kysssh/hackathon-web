@@ -6,7 +6,16 @@ import { tracks } from '@/content/public';
 import { eventConfig } from '@/config/event';
 import { formatEventDate } from '@/dates';
 
-export const metadata: Metadata = { title: 'Información y retos' };
+export const metadata: Metadata = {
+  title: 'Información y retos · Hackathon 2026',
+  description: 'Conocé los tres retos culturales del hackathon y elegí el que va a resolver tu equipo.',
+  openGraph: {
+    title: 'Información y retos · Hackathon 2026',
+    description: 'Conocé los tres retos culturales del hackathon y elegí el que va a resolver tu equipo.',
+    type: 'website',
+    locale: 'es_PE',
+  },
+};
 
 export default function InformacionPage() {
   return <PublicShell><InnerHero eyebrow="Conoce la convocatoria" title="Información y retos" description="Una hackathon para explorar cómo la tecnología puede abrir nuevas posibilidades para la cultura." />

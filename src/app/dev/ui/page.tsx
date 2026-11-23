@@ -1,314 +1,353 @@
 'use client';
 
 import { useState } from 'react';
-import { Accordion, AccordionItem } from '@/components/ui/accordion';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Countdown } from '@/components/ui/countdown';
-import { Dialog } from '@/components/ui/dialog';
-import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
-import { PublicShell } from '@/components/ui/public-shell';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardBody, CardFooter } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ToastProvider, useToast } from '@/components/ui/toast';
+import { Dialog } from '@/components/ui/dialog';
 import {
   Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
+  TableBody,
   TableRow,
+  TableHead,
+  TableCell,
 } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
-import { Toast } from '@/components/ui/toast';
+import { Accordion } from '@/components/ui/accordion';
 
-export default function DevUiPage() {
+function Section({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-4">
+      <div>
+        <h2 className="display-font text-2xl uppercase text-[#f1eaff]">{title}</h2>
+        {description && <p className="mt-1 text-sm text-[#c5bfd3]">{description}</p>}
+      </div>
+      <div className="rounded-[18px] border border-white/10 bg-[#241a38]/40 p-6">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function DevUiContent() {
+  const { showToast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [textareaValue, setTextareaValue] = useState('');
 
   return (
-    <PublicShell>
-      <div className="section-wrap max-w-5xl space-y-16">
-        <div>
-          <span className="eyebrow text-emerald-300">Catálogo de componentes</span>
-          <h1 className="display-font mt-2 text-5xl uppercase tracking-wide text-white sm:text-6xl">
-            Biblioteca UI (Semana 1)
-          </h1>
-          <p className="mt-4 text-slate-300">
-            Muestrario de los componentes visuales reutilizables definidos en el contrato de diseño y páginas públicas (UX).
-          </p>
+    <main className="mx-auto max-w-4xl space-y-14 px-6 py-12">
+      <header className="space-y-3">
+        <span className="eyebrow text-[#c5c0ff]">Sistema de diseño</span>
+        <h1 className="display-font text-5xl uppercase text-[#f1eaff]">
+          Componentes <span className="gradient-text">UI</span>
+        </h1>
+        <p className="max-w-2xl text-sm leading-7 text-[#c5bfd3]">
+          Todos los componentes reutilizables del hackathon. Usalos en las páginas
+          privadas y públicas para mantener el estilo consistente.
+        </p>
+      </header>
+
+      {/* ─── BUTTON ─────────────────────────────────────────── */}
+      <Section title="Button" description="Variantes, tamaños y estado de carga.">
+        <div className="space-y-6">
+          <div>
+            <p className="eyebrow mb-3 text-[#c5bfd3]">Variantes</p>
+            <div className="flex flex-wrap gap-3">
+              <Button>Primary</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="light">Light</Button>
+              <Button variant="ghost">Ghost</Button>
+            </div>
+          </div>
+          <div>
+            <p className="eyebrow mb-3 text-[#c5bfd3]">Tamaños</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button size="sm">Small</Button>
+              <Button size="md">Medium</Button>
+              <Button size="lg">Large</Button>
+            </div>
+          </div>
+          <div>
+            <p className="eyebrow mb-3 text-[#c5bfd3]">Estados</p>
+            <div className="flex flex-wrap gap-3">
+              <Button loading>Loading</Button>
+              <Button disabled>Disabled</Button>
+            </div>
+          </div>
         </div>
+      </Section>
 
-        {/* Botones */}
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-purple-200">
-            1. Botones (Button)
-          </h2>
-          <div className="flex flex-wrap items-center gap-4">
-            <Button variant="primary">Primario</Button>
-            <Button variant="secondary">Secundario</Button>
-            <Button variant="light">Light</Button>
-            <Button variant="danger">Peligro</Button>
-            <Button variant="primary" loading>
-              Cargando
-            </Button>
-            <Button variant="primary" disabled>
-              Deshabilitado
-            </Button>
-          </div>
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            <Button size="sm">Pequeño (sm)</Button>
-            <Button size="md">Mediano (md)</Button>
-            <Button size="lg">Grande (lg)</Button>
-          </div>
-        </section>
+      {/* ─── INPUT ──────────────────────────────────────────── */}
+      <Section title="Input" description="Campos de texto con label, hint y error.">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Input
+            label="Nombre"
+            placeholder="Tu nombre"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+          />
+          <Input label="Email" type="email" placeholder="vos@ejemplo.com" />
+          <Input
+            label="Con error"
+            defaultValue="texto mal"
+            error="Este campo no es válido"
+          />
+          <Input
+            label="Con ayuda"
+            placeholder="HACK-XXXX"
+            hint="Lo recibís al crear tu equipo"
+          />
+          <Input label="Deshabilitado" disabled placeholder="No editable" />
+          <Input label="Requerido" required placeholder="Obligatorio" />
+        </div>
+      </Section>
 
-        {/* Badges */}
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-purple-200">
-            2. Insignias (Badge)
-          </h2>
-          <div className="flex flex-wrap gap-3">
-            <Badge variant="default">Predeterminado</Badge>
-            <Badge variant="winner">★ Ganador</Badge>
-            <Badge variant="finalist">Finalista</Badge>
-            <Badge variant="success">Entregado</Badge>
-            <Badge variant="warning">Pendiente</Badge>
-            <Badge variant="neutral">Borrador</Badge>
-          </div>
-        </section>
-
-        {/* Entradas */}
-        <section className="space-y-6">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-purple-200">
-            3. Entradas de texto (Input & Textarea)
-          </h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            <Input
-              label="Nombre del equipo"
-              placeholder="Ej: Byte Force"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              hint="Entre 3 y 40 caracteres."
-            />
-            <Input
-              label="Campo con error"
-              defaultValue="Dato incorrecto"
-              error="Este nombre de equipo ya fue utilizado."
-            />
-          </div>
+      {/* ─── TEXTAREA ───────────────────────────────────────── */}
+      <Section title="Textarea" description="Texto largo para descripciones.">
+        <div className="grid gap-5 sm:grid-cols-2">
           <Textarea
-            label="Resumen del proyecto"
-            placeholder="Breve descripción ejecutiva..."
-            maxLength={280}
+            label="Descripción"
+            placeholder="Contá tu idea..."
             value={textareaValue}
             onChange={(e) => setTextareaValue(e.target.value)}
-            hint="Máximo 280 caracteres."
+            hint={`${textareaValue.length}/280 caracteres`}
           />
-        </section>
+          <Textarea
+            label="Con error"
+            defaultValue="Muy corto"
+            error="La descripción necesita al menos 40 caracteres"
+          />
+        </div>
+      </Section>
 
-        {/* Tarjetas */}
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-purple-200">
-            4. Tarjetas (Card)
-          </h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card variant="panel">
-              <CardHeader>
-                <CardTitle>Tarjeta de información</CardTitle>
-                <CardDescription>
-                  Diseñada con estilo panel para áreas operativas y formularios.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-300">
-                  Contenido adaptable para datos del equipo o resúmenes de estado.
-                </p>
-              </CardContent>
-              <CardFooter>
-                <span className="text-xs text-slate-400">Actualizado recientemente</span>
-                <Button size="sm" variant="secondary">
-                  Detalles
-                </Button>
-              </CardFooter>
-            </Card>
+      {/* ─── BADGE ──────────────────────────────────────────── */}
+      <Section title="Badge" description="Etiquetas de estado y categoría.">
+        <div className="flex flex-wrap gap-3">
+          <Badge>Neutral</Badge>
+          <Badge tone="brand">Brand</Badge>
+          <Badge tone="success">Aprobado</Badge>
+          <Badge tone="warning">Pendiente</Badge>
+          <Badge tone="danger">Error</Badge>
+          <Badge tone="winner">🏆 Ganador</Badge>
+        </div>
+      </Section>
 
-            <Card variant="feature">
-              <span className="display-font text-5xl text-purple-300/60">01</span>
-              <CardHeader className="mt-4">
-                <CardTitle>Tarjeta de reto / característica</CardTitle>
-                <CardDescription>
-                  Utilizada en el landing público con efecto hover y elevación.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-300">
-                  Perfecta para destacar tracks y categorías de la convocatoria.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Toasts */}
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-purple-200">
-            5. Alertas y notificaciones (Toast)
-          </h2>
-          <div className="space-y-3 max-w-xl">
-            <Toast variant="info" title="Información oficial">
-              Las inscripciones de equipos cierran el 13 de noviembre.
-            </Toast>
-            <Toast variant="success" title="Proyecto enviado">
-              Tu proyecto fue registrado satisfactoriamente dentro del plazo.
-            </Toast>
-            <Toast variant="warning" title="Faltan requisitos">
-              Debes subir el pitch deck en PDF para habilitar la entrega.
-            </Toast>
-            <Toast variant="error" title="Acceso denegado">
-              No tienes permisos para acceder al panel de organización.
-            </Toast>
-          </div>
-        </section>
-
-        {/* Tabla */}
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-purple-200">
-            6. Tablas (Table)
-          </h2>
+      {/* ─── CARD ───────────────────────────────────────────── */}
+      <Section title="Card" description="Contenedor con header, body y footer.">
+        <div className="grid gap-5 md:grid-cols-2">
           <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Proyecto</TableHead>
-                  <TableHead>Equipo</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Nota</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-semibold text-white">
-                    Ruta Cultural AR
-                  </TableCell>
-                  <TableCell>Byte Force</TableCell>
-                  <TableCell>
-                    <Badge variant="winner">Ganador</Badge>
-                  </TableCell>
-                  <TableCell className="text-right font-mono font-bold text-purple-200">
-                    9.45
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-semibold text-white">
-                    Memoria Viva
-                  </TableCell>
-                  <TableCell>Eco Ruta</TableCell>
-                  <TableCell>
-                    <Badge variant="finalist">Finalista</Badge>
-                  </TableCell>
-                  <TableCell className="text-right font-mono font-bold text-purple-200">
-                    8.80
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+            <CardHeader>
+              <CardTitle>Byte Force</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <p className="text-sm text-[#c5bfd3]">5 integrantes · Proyecto enviado</p>
+            </CardBody>
+            <CardFooter>
+              <Button size="sm">Ver equipo</Button>
+            </CardFooter>
           </Card>
-        </section>
 
-        {/* Acordeón y Cuenta Regresiva */}
-        <section className="space-y-6">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-purple-200">
-            7. Acordeón (Accordion) y Cuenta Regresiva (Countdown)
-          </h2>
-          <div className="grid gap-8 md:grid-cols-2">
-            <div>
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">
-                Preguntas frecuentes
-              </h3>
-              <Accordion>
-                <AccordionItem title="¿Quién puede subir entregables?">
-                  Cualquier integrante del equipo puede subir y gestionar los archivos
-                  en el panel de proyecto antes del cierre.
-                </AccordionItem>
-                <AccordionItem title="¿Quién realiza la entrega final?">
-                  Únicamente el líder del equipo puede confirmar la entrega definitiva.
-                </AccordionItem>
-              </Accordion>
-            </div>
-            <div>
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">
-                Temporizador
-              </h3>
-              <div className="info-panel p-5">
-                <Countdown target="2026-11-20T23:59:00-05:00" />
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Eco Ruta</CardTitle>
+                <Badge tone="success">Finalista</Badge>
               </div>
+            </CardHeader>
+            <CardBody>
+              <p className="text-sm text-[#c5bfd3]">
+                Proyecto de movilidad sustentable para zonas rurales.
+              </p>
+            </CardBody>
+            <CardFooter className="flex justify-between">
+              <Button size="sm" variant="ghost">Detalles</Button>
+              <Button size="sm">Calificar</Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </Section>
+
+      {/* ─── EMPTY STATE ────────────────────────────────────── */}
+      <Section title="EmptyState" description="Cuando no hay datos que mostrar.">
+        <div className="grid gap-5 md:grid-cols-2">
+          <EmptyState
+            title="Aún no hay proyectos"
+            description="Cuando los equipos envíen sus proyectos, van a aparecer acá."
+            icon="📭"
+          />
+          <EmptyState
+            title="Sin resultados"
+            description="Probá con otros términos de búsqueda."
+            icon="🔍"
+            action={<Button size="sm" variant="secondary">Limpiar filtros</Button>}
+          />
+        </div>
+      </Section>
+
+      {/* ─── SKELETON ───────────────────────────────────────── */}
+      <Section title="Skeleton" description="Placeholder mientras carga.">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+          <Skeleton className="h-32 w-full" />
+          <div className="flex gap-3">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
             </div>
           </div>
-        </section>
+        </div>
+      </Section>
 
-        {/* Estados vacíos y Skeletons */}
-        <section className="space-y-6">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-purple-200">
-            8. Estados vacíos (EmptyState) y Carga (Skeleton)
-          </h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            <EmptyState
-              title="No hay proyectos registrados"
-              description="Sé el primero en inscribir a tu equipo y comenzar a construir."
-              action={<Button variant="primary">Crear equipo</Button>}
-            />
-            <Card className="p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-3 w-1/4" />
-                </div>
-              </div>
-              <Skeleton className="h-24 w-full" />
-              <div className="flex justify-end gap-2">
-                <Skeleton className="h-9 w-24" />
-              </div>
-            </Card>
-          </div>
-        </section>
+      {/* ─── TOAST ──────────────────────────────────────────── */}
+      <Section
+        title="Toast"
+        description="Avisos flotantes. Aparecen abajo a la derecha y se van solos."
+      >
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={() => showToast('Proyecto guardado', 'success')}>
+            Éxito
+          </Button>
+          <Button variant="secondary" onClick={() => showToast('Algo salió mal', 'error')}>
+            Error
+          </Button>
+          <Button variant="ghost" onClick={() => showToast('Información útil', 'info')}>
+            Info
+          </Button>
+        </div>
+      </Section>
 
-        {/* Modal interactivo */}
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-purple-200">
-            9. Ventana modal (Dialog)
-          </h2>
-          <Button onClick={() => setDialogOpen(true)}>Abrir diálogo modal</Button>
-          <Dialog
-            open={dialogOpen}
-            onClose={() => setDialogOpen(false)}
-            title="Confirmación de entrega"
-            description="Revisa con atención antes de confirmar el envío formal."
-          >
-            <p className="text-sm text-slate-300">
-              Una vez confirmada la entrega, el proyecto quedará visible para la
-              revisión del jurado al cerrarse el plazo oficial.
-            </p>
-            <div className="mt-6 flex justify-end gap-3">
-              <Button variant="secondary" onClick={() => setDialogOpen(false)}>
+      {/* ─── DIALOG ─────────────────────────────────────────── */}
+      <Section title="Dialog" description="Modal de confirmación. Cierra con Escape o clic afuera.">
+        <Button onClick={() => setDialogOpen(true)}>Abrir diálogo</Button>
+
+        <Dialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          title="Confirmar envío"
+          description="Una vez enviado, no vas a poder editar tu proyecto."
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button variant="primary" onClick={() => setDialogOpen(false)}>
-                Entendido
+              <Button
+                onClick={() => {
+                  setDialogOpen(false);
+                  showToast('Proyecto enviado', 'success');
+                }}
+              >
+                Confirmar envío
               </Button>
-            </div>
-          </Dialog>
-        </section>
-      </div>
-    </PublicShell>
+            </>
+          }
+        >
+          ¿Estás seguro de que querés enviar <strong>Eco Ruta</strong> al jurado?
+        </Dialog>
+      </Section>
+
+      {/* ─── TABLE ──────────────────────────────────────────── */}
+      <Section title="Table" description="Para el panel de organización.">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Proyecto</TableHead>
+              <TableHead>Equipo</TableHead>
+              <TableHead>Calificaciones</TableHead>
+              <TableHead>Promedio</TableHead>
+              <TableHead>Estado</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell className="font-semibold">Eco Ruta</TableCell>
+              <TableCell>Eco Ruta</TableCell>
+              <TableCell>3</TableCell>
+              <TableCell>8.5</TableCell>
+              <TableCell>
+                <Badge tone="winner">Ganador</Badge>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-semibold">Byte Force</TableCell>
+              <TableCell>Byte Force</TableCell>
+              <TableCell>2</TableCell>
+              <TableCell>7.2</TableCell>
+              <TableCell>
+                <Badge tone="success">Finalista</Badge>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-semibold">Solo Dev</TableCell>
+              <TableCell>Solo Dev</TableCell>
+              <TableCell>0</TableCell>
+              <TableCell>—</TableCell>
+              <TableCell>
+                <Badge tone="warning">Sin calificar</Badge>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </Section>
+
+      {/* ─── ACCORDION ──────────────────────────────────────── */}
+      <Section title="Accordion" description="Para preguntas frecuentes.">
+        <Accordion
+          items={[
+            {
+              id: 'q1',
+              question: '¿Quién puede participar?',
+              answer:
+                'Cualquier persona mayor de 18 años interesada en cultura y tecnología. No hace falta ser programador.',
+            },
+            {
+              id: 'q2',
+              question: '¿Cuántos integrantes por equipo?',
+              answer:
+                'Entre 2 y 5 personas. El líder crea el equipo y recibe un código HACK-XXXX para invitar a los demás.',
+            },
+            {
+              id: 'q3',
+              question: '¿Hasta cuándo puedo enviar mi proyecto?',
+              answer:
+                'Hasta la fecha de cierre indicada en el cronograma. Después de esa fecha, el botón de envío se bloquea.',
+            },
+          ]}
+        />
+      </Section>
+
+      {/* ─── FOOTER ─────────────────────────────────────────── */}
+      <footer className="border-t border-white/10 pt-8 text-center text-xs text-[#c5bfd3]">
+        <p>
+          Última actualización: {new Date().toLocaleDateString('es-PE')} · Hackathon
+          Cultural 2026
+        </p>
+      </footer>
+    </main>
+  );
+}
+
+export default function DevUiPage() {
+  return (
+    <ToastProvider>
+      <DevUiContent />
+    </ToastProvider>
   );
 }

@@ -1,4 +1,4 @@
-import type { TextareaHTMLAttributes } from 'react';
+import { forwardRef, type TextareaHTMLAttributes } from 'react';
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -6,60 +6,38 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
   hint?: string;
 }
 
-export function Textarea({
-  id,
-  label,
-  error,
-  hint,
-  maxLength,
-  value,
-  className = '',
-  disabled,
-  rows = 4,
-  ...props
-}: TextareaProps) {
-  const textareaId = id ?? (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
-  const currentLength = typeof value === 'string' ? value.length : 0;
-  const remaining = maxLength ? maxLength - currentLength : null;
-
-  return (
-    <div className="w-full space-y-1.5">
-      <div className="flex items-center justify-between">
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ label, error, hint, id, className = '', rows = 5, ...props }, ref) => {
+    const inputId = id ?? props.name;
+    return (
+      <div className="flex flex-col gap-1.5">
         {label && (
-          <label
-            htmlFor={textareaId}
-            className="block text-xs font-semibold uppercase tracking-wider text-purple-200/90"
-          >
+          <label htmlFor={inputId} className="text-sm font-semibold text-[#f1eaff]">
             {label}
           </label>
         )}
-        {remaining !== null && (
-          <span className="text-xs text-slate-400">
-            {remaining} restantes
-          </span>
-        )}
+        <textarea
+          ref={ref}
+          id={inputId}
+          rows={rows}
+          className={
+            'rounded-[10px] border bg-[#120826] p-4 text-sm text-[#f1eaff] ' +
+            'placeholder:text-[#f1eaff]/40 focus:outline-none focus:ring-2 ' +
+            (error
+              ? 'border-red-400/60 focus:ring-red-400/40'
+              : 'border-white/10 focus:ring-[#a39ee7]/60') +
+            ' ' + className
+          }
+          {...props}
+        />
+        {error ? (
+          <p className="text-xs text-red-300">{error}</p>
+        ) : hint ? (
+          <p className="text-xs text-[#c5bfd3]">{hint}</p>
+        ) : null}
       </div>
-      <textarea
-        id={textareaId}
-        rows={rows}
-        maxLength={maxLength}
-        value={value}
-        disabled={disabled}
-        className={`w-full rounded-xl border bg-[#241a38] px-4 py-2.5 text-sm text-white placeholder:text-slate-400 focus:outline-none transition-colors ${
-          error
-            ? 'border-red-400 focus:border-red-500'
-            : 'border-white/20 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/50'
-        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
-        {...props}
-      />
-      {hint && !error && (
-        <p className="text-xs text-slate-400">{hint}</p>
-      )}
-      {error && (
-        <p role="alert" className="text-xs font-medium text-red-300">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
+    );
+  },
+);
+
+Textarea.displayName = 'Textarea';

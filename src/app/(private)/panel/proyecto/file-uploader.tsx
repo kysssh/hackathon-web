@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useAction } from '@/components/private/hooks/use-action';
+import { useSubmissionWindow } from '@/components/private/submission-window';
 import { eventConfig, type ProjectFileKind } from '@/config/event';
 import { getErrorMessage } from '@/error-messages';
 import {
@@ -11,6 +12,11 @@ import {
   createUploadUrlAction,
   deleteProjectFileAction,
 } from '@/lib/files/actions';
+import {
+  acceptAttribute,
+  resolveContentType,
+  safeFileName,
+} from '@/lib/files/mime';
 import type { ProjectDto } from '@/lib/queries/dtos';
 
 import {
@@ -78,7 +84,9 @@ function FileRow({
     >
       <span className="min-w-0 truncate">
         📎 {file.originalName}{' '}
-        <span className="text-xs text-slate-400">({formatMB(file.sizeBytes)})</span>
+        <span className="text-xs text-slate-400">
+          ({formatMB(file.sizeBytes)})
+        </span>
       </span>
       <button
         type="button"
@@ -115,7 +123,9 @@ export function FileUploader({
   const maxFiles = kind === 'EXTRA' ? eventConfig.files.maxExtraFiles : 1;
 
   const files = project?.files.filter((f) => f.kind === kind) ?? [];
-  const closed = project?.submissionWindow.status === 'CLOSED';
+  // Estado del plazo "en vivo": se bloquea solo cuando vence con la pantalla abierta.
+  const windowState = useSubmissionWindow(project?.submissionWindow ?? null);
+  const closed = windowState?.status === 'CLOSED';
   const canAdd = project !== null && !closed && files.length < maxFiles;
 
   const [phase, setPhase] = useState<Phase>('idle');
@@ -132,7 +142,7 @@ export function FileUploader({
   const busy = phase !== 'idle';
 
   function validate(file: File): string | null {
-    if (!allowedTypes.includes(file.type)) {
+    if (!allowedTypes.includes(resolveContentType(file.name, file.type))) {
       return `Tipo de archivo no permitido. Se acepta: ${allowedTypes.join(', ')}.`;
     }
     if (file.size > limits.maxBytes) {
@@ -165,8 +175,8 @@ export function FileUploader({
 
     const meta = {
       kind,
-      fileName: file.name,
-      contentType: file.type,
+      fileName: safeFileName(file.name),
+      contentType: resolveContentType(file.name, file.type),
       sizeBytes: file.size,
     };
 
@@ -177,7 +187,8 @@ export function FileUploader({
       setPhase('authorizing');
       try {
         const res = await createUploadUrlAction(meta);
-        if (!res.ok) return fail('authorizing', getErrorMessage(res.error.code));
+        if (!res.ok)
+          return fail('authorizing', getErrorMessage(res.error.code));
         attempt.signed = res.data;
       } catch {
         return fail('authorizing', NETWORK_MESSAGE);
@@ -190,7 +201,7 @@ export function FileUploader({
       if (!storage) {
         return fail(
           'uploading',
-          'El almacenamiento no está configurado (faltan SUPABASE_URL o SUPABASE_PUBLISHABLE_KEY).',
+          'El almacenamiento no está configurado (faltan SUPABASE_URL o SUPABASE_PUBLISHABLE_KEY).'
         );
       }
       setPhase('uploading');
@@ -202,6 +213,7 @@ export function FileUploader({
           storage,
           signed: attempt.signed,
           file,
+          contentType: meta.contentType,
           signal: controller.signal,
           onProgress: setProgress,
         });
@@ -215,7 +227,7 @@ export function FileUploader({
         attempt.signed = null;
         return fail(
           'uploading',
-          error instanceof UploadError ? error.message : NETWORK_MESSAGE,
+          error instanceof UploadError ? error.message : NETWORK_MESSAGE
         );
       }
       abortRef.current = null;
@@ -266,7 +278,8 @@ export function FileUploader({
       </div>
       <p className="mt-1 text-xs text-slate-400">
         {KIND_HINT[kind]}
-        {kind === 'EXTRA' && ` Hasta ${maxFiles} archivos (${files.length}/${maxFiles}).`}
+        {kind === 'EXTRA' &&
+          ` Hasta ${maxFiles} archivos (${files.length}/${maxFiles}).`}
       </p>
 
       {files.length > 0 && (
@@ -283,7 +296,7 @@ export function FileUploader({
             type="file"
             data-testid={`uploader-${slug}-input`}
             aria-label={`Elegir ${KIND_LABEL[kind].toLowerCase()}`}
-            accept={allowedTypes.join(',')}
+            accept={acceptAttribute(allowedTypes)}
             disabled={busy}
             onChange={handleFileChange}
             className="text-sm disabled:opacity-50"
@@ -292,11 +305,16 @@ export function FileUploader({
       )}
 
       {project === null && (
-        <p data-testid={`uploader-${slug}-needs-draft`} className="mt-3 text-xs text-slate-400">
+        <p
+          data-testid={`uploader-${slug}-needs-draft`}
+          className="mt-3 text-xs text-slate-400"
+        >
           Guarda el borrador del proyecto para poder subir archivos.
         </p>
       )}
-      {closed && <p className="mt-3 text-xs text-slate-400">Las entregas ya cerraron.</p>}
+      {closed && (
+        <p className="mt-3 text-xs text-slate-400">Las entregas ya cerraron.</p>
+      )}
       {project !== null && !closed && files.length >= maxFiles && (
         <p className="mt-3 text-xs text-slate-400">
           {kind === 'EXTRA'
@@ -351,8 +369,14 @@ export function FileUploader({
       )}
 
       {failure && (
-        <div role="alert" data-testid={`uploader-${slug}-error`} className="mt-3 space-y-2">
-          <p className="text-sm font-medium text-red-300">{FAILURE_TITLE[failure.phase]}</p>
+        <div
+          role="alert"
+          data-testid={`uploader-${slug}-error`}
+          className="mt-3 space-y-2"
+        >
+          <p className="text-sm font-medium text-red-300">
+            {FAILURE_TITLE[failure.phase]}
+          </p>
           <p className="text-sm text-red-300">{failure.message}</p>
           <div className="flex gap-3">
             <button
@@ -361,7 +385,9 @@ export function FileUploader({
               onClick={() => void execute()}
               className="button-primary"
             >
-              {failure.phase === 'confirming' ? 'Reintentar confirmación' : 'Reintentar'}
+              {failure.phase === 'confirming'
+                ? 'Reintentar confirmación'
+                : 'Reintentar'}
             </button>
             <button
               type="button"
@@ -377,4 +403,3 @@ export function FileUploader({
     </div>
   );
 }
-

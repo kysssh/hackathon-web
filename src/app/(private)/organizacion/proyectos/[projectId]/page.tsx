@@ -1,4 +1,7 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
+
+import { formatScore } from '@/components/private/format-score';
 
 import { criteria } from '@/config/criteria';
 import type { ProjectFileKind } from '@/config/event';
@@ -49,6 +52,10 @@ export default async function OrganizacionProyectoPage({
 
   return (
     <div className="space-y-6">
+      <Link href="/organizacion" className="text-link text-sm">
+        ← Volver a proyectos
+      </Link>
+
       <div>
         <h1 className="text-xl font-semibold">{project.title}</h1>
         <p className="text-sm text-slate-400">
@@ -63,7 +70,9 @@ export default async function OrganizacionProyectoPage({
         <div data-testid="org-detail-score">
           <span className="eyebrow text-purple-300">Calificaciones</span>
           <p className="display-font text-4xl">
-            {project.averageScore !== null ? project.averageScore : '—'}
+            {project.averageScore !== null
+              ? formatScore(project.averageScore)
+              : 'Sin evaluar'}
           </p>
           <p className="text-sm text-slate-400">
             {project.evaluationCount === 0
@@ -104,18 +113,34 @@ export default async function OrganizacionProyectoPage({
       </div>
 
       <div className="info-panel p-6">
-        <WinnerTitleForm projectId={project.projectId} initialTitle={project.winnerTitle} />
+        <WinnerTitleForm
+          projectId={project.projectId}
+          initialTitle={project.winnerTitle}
+        />
       </div>
 
       <div className="info-panel p-6">
-        <p className="text-sm leading-6 text-slate-300">{project.description}</p>
+        <p className="whitespace-pre-line text-sm leading-6 text-slate-300">
+          {project.description}
+        </p>
         {links.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-4 text-sm">
             {links.map((l) => (
-              <a key={l.label} className="text-link" href={l.href} target="_blank" rel="noreferrer">
+              <a
+                key={l.label}
+                className="text-link"
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {l.label}
               </a>
             ))}
+            {project.isVisibleInGallery && (
+              <Link href={`/galeria/${project.slug}`} className="text-link">
+                Ver en la galería
+              </Link>
+            )}
           </div>
         )}
       </div>
@@ -124,7 +149,10 @@ export default async function OrganizacionProyectoPage({
         <h2 className="font-medium">Evaluaciones ({evaluations.length})</h2>
 
         {evaluations.length === 0 ? (
-          <div data-testid="org-evaluations-empty" className="info-panel p-6 text-center text-sm">
+          <div
+            data-testid="org-evaluations-empty"
+            className="info-panel p-6 text-center text-sm"
+          >
             Todavía ningún jurado calificó este proyecto.
           </div>
         ) : (
@@ -138,7 +166,10 @@ export default async function OrganizacionProyectoPage({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium">{e.judgeName ?? e.judgeEmail}</p>
                   <p className="text-sm text-slate-300">
-                    Nota ponderada: <span className="font-medium">{e.weightedScore}</span>
+                    Nota ponderada:{' '}
+                    <span className="font-medium">
+                      {formatScore(e.weightedScore)}
+                    </span>
                   </p>
                 </div>
                 <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
@@ -152,7 +183,9 @@ export default async function OrganizacionProyectoPage({
                   ))}
                 </dl>
                 {e.comment && (
-                  <p className="mt-3 text-sm leading-6 text-slate-300">“{e.comment}”</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">
+                    “{e.comment}”
+                  </p>
                 )}
               </li>
             ))}
@@ -164,7 +197,10 @@ export default async function OrganizacionProyectoPage({
         <h2 className="font-medium">Archivos ({files.length})</h2>
 
         {files.length === 0 ? (
-          <div data-testid="org-files-empty" className="info-panel p-6 text-center text-sm">
+          <div
+            data-testid="org-files-empty"
+            className="info-panel p-6 text-center text-sm"
+          >
             El equipo todavía no subió archivos.
           </div>
         ) : (
@@ -176,9 +212,13 @@ export default async function OrganizacionProyectoPage({
                 className="info-panel flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
               >
                 <span className="min-w-0 truncate">
-                  <span className="text-xs uppercase text-slate-400">{KIND_LABEL[f.kind]}</span>{' '}
+                  <span className="text-xs uppercase text-slate-400">
+                    {KIND_LABEL[f.kind]}
+                  </span>{' '}
                   {f.originalName}{' '}
-                  <span className="text-xs text-slate-400">({formatMB(f.sizeBytes)})</span>
+                  <span className="text-xs text-slate-400">
+                    ({formatMB(f.sizeBytes)})
+                  </span>
                 </span>
                 {/* Ruta de API (redirige a una URL firmada): no es una página, va con <a>. */}
                 <a

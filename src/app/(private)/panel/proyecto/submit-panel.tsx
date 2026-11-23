@@ -1,21 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { formatEventDate } from '@/dates';
 import { useRouter } from 'next/navigation';
 
 import { useAction } from '@/components/private/hooks/use-action';
+import {
+  formatRemaining,
+  useSubmissionWindow,
+} from '@/components/private/submission-window';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/toast';
+import { formatEventDate } from '@/dates';
 import { submitProjectAction } from '@/lib/project/actions';
 import type { ProjectDto } from '@/lib/queries/dtos';
 
-function formatRemaining(closesAt: string, now: string) {
-  const ms = Date.parse(closesAt) - Date.parse(now);
-  if (ms <= 0) return null;
-  const hours = Math.floor(ms / 3_600_000);
-  const days = Math.floor(hours / 24);
-  if (days >= 1) return `${days} día${days === 1 ? '' : 's'}`;
-  return `${hours} hora${hours === 1 ? '' : 's'}`;
-}
+import { MISSING_FIELD_LABELS } from './field-labels';
 
 export function SubmitPanel({
   project,
@@ -25,12 +26,16 @@ export function SubmitPanel({
   isTeamLeader: boolean;
 }) {
   const router = useRouter();
-  const [confirming, setConfirming] = useState(false);
+  const { showToast } = useToast();
+  const [open, setOpen] = useState(false);
   const { run, pending, error } = useAction(submitProjectAction);
 
-  const { status, closesAt, serverNow } = project.submissionWindow;
+  // Estado "en vivo" del plazo: si vence con la pantalla abierta, todo pasa a bloqueado.
+  const { status, remainingMs, opensAt } = useSubmissionWindow(
+    project.submissionWindow
+  );
   const alreadySubmitted = project.submittedAt != null;
-  const canSubmit = isTeamLeader && status === 'OPEN';
+  const missing = project.missingFields;
 
   // Un integrante que no es líder nunca ve el botón de enviar, no solo deshabilitado.
   if (!isTeamLeader) {
@@ -44,75 +49,123 @@ export function SubmitPanel({
   if (status === 'NOT_OPEN') {
     return (
       <p data-testid="submit-not-open" className="text-sm text-slate-400">
-        Las entregas todavía no están abiertas.
+        Las entregas todavía no están abiertas. Abren el{' '}
+        {formatEventDate(opensAt)}.
       </p>
     );
   }
 
   if (status === 'CLOSED') {
     return (
-      <p data-testid="submit-closed" className="text-sm text-red-300">
-        Las entregas ya cerraron. Ya no es posible enviar el proyecto.
-      </p>
+      <div data-testid="submit-closed" className="space-y-2 text-sm">
+        <p className="text-red-300">
+          Las entregas ya cerraron. Ya no es posible enviar el proyecto.
+        </p>
+        {alreadySubmitted && (
+          <p className="text-slate-300">
+            Tu último envío fue el {formatEventDate(project.submittedAt!)}{' '}
+            (envío {project.submissionCount}).
+          </p>
+        )}
+      </div>
     );
   }
 
-  const remaining = formatRemaining(closesAt, serverNow);
+  function handleConfirm() {
+    run({}, () => {
+      setOpen(false);
+      showToast('Proyecto enviado.', 'success');
+      router.refresh();
+    });
+  }
 
   return (
-    <div data-testid="submit-panel" className="info-panel p-6">
+    <div data-testid="submit-panel" className="info-panel space-y-3">
       {alreadySubmitted && (
-        <p data-testid="submit-already-done" className="text-sm text-emerald-300">
-          Proyecto enviado el {formatEventDate(project.submittedAt!)}.
+        <p
+          data-testid="submit-already-done"
+          className="flex flex-wrap items-center gap-2 text-sm"
+        >
+          <Badge tone="success">
+            Enviado · envío {project.submissionCount}
+          </Badge>
+          <span className="text-emerald-300">
+            {formatEventDate(project.submittedAt!)}
+          </span>
         </p>
       )}
-      {remaining && (
-        <p className="text-sm text-amber-300">⏳ Quedan {remaining} para el cierre.</p>
+
+      {remainingMs !== null && (
+        <p className="text-sm text-amber-300">
+          ⏳ Quedan {formatRemaining(remainingMs)} para el cierre.
+        </p>
       )}
 
-      {!confirming ? (
-        <button
-          type="button"
-          data-testid="submit-open-confirm"
-          disabled={!canSubmit}
-          onClick={() => setConfirming(true)}
-          className="button-primary mt-3 disabled:opacity-50"
-        >
-          {alreadySubmitted ? 'Volver a enviar proyecto' : 'Enviar proyecto'}
-        </button>
-      ) : (
-        <div className="mt-3 space-y-3">
-          <p className="text-sm">
-            Puedes editar y volver a enviar el proyecto hasta el cierre del plazo. ¿Confirmas el envío?
-          </p>
-          <div className="flex gap-3">
-            <button
+      <Button
+        type="button"
+        data-testid="submit-open-confirm"
+        onClick={() => setOpen(true)}
+      >
+        {alreadySubmitted ? 'Volver a enviar proyecto' : 'Enviar proyecto'}
+      </Button>
+
+      <Dialog
+        open={open}
+        onClose={() => {
+          if (!pending) setOpen(false);
+        }}
+        title={
+          alreadySubmitted
+            ? 'Volver a enviar el proyecto'
+            : 'Enviar el proyecto'
+        }
+        description="Puedes editar y volver a enviar el proyecto hasta el cierre del plazo."
+        footer={
+          <>
+            <Button
               type="button"
-              data-testid="submit-confirm"
-              disabled={pending}
-              onClick={() => run({}, () => router.refresh())}
-              className="button-primary disabled:opacity-50"
-            >
-              {pending ? 'Enviando…' : 'Sí, enviar'}
-            </button>
-            <button
-              type="button"
+              variant="secondary"
               data-testid="submit-cancel"
               disabled={pending}
-              onClick={() => setConfirming(false)}
-              className="button-secondary disabled:opacity-50"
+              onClick={() => setOpen(false)}
             >
               Cancelar
-            </button>
+            </Button>
+            <Button
+              type="button"
+              data-testid="submit-confirm"
+              loading={pending}
+              disabled={missing.length > 0}
+              onClick={handleConfirm}
+            >
+              {pending ? 'Enviando…' : 'Sí, enviar'}
+            </Button>
+          </>
+        }
+      >
+        {missing.length > 0 ? (
+          <div data-testid="submit-missing-fields" className="space-y-2">
+            <p>Antes de enviar, completa lo que falta:</p>
+            <ul className="list-disc pl-5 text-amber-200">
+              {missing.map((f) => (
+                <li key={f}>{MISSING_FIELD_LABELS[f] ?? f}</li>
+              ))}
+            </ul>
           </div>
-        </div>
-      )}
+        ) : (
+          <p>¿Confirmas el envío?</p>
+        )}
 
-      {error && (
-        <p role="alert" data-testid="submit-error" className="mt-3 text-sm text-red-300">
-          {error}
-        </p>
-      )}
+        {error && (
+          <p
+            role="alert"
+            data-testid="submit-error"
+            className="mt-3 text-sm text-red-300"
+          >
+            {error}
+          </p>
+        )}
+      </Dialog>
     </div>
   );
 }

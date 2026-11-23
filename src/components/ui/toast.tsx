@@ -1,83 +1,69 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
-export type ToastVariant = 'info' | 'success' | 'error' | 'warning';
+type ToastTone = 'success' | 'error' | 'info';
 
-export interface ToastProps {
-  variant?: ToastVariant;
-  title?: string;
-  children: ReactNode;
-  onDismiss?: () => void;
-  className?: string;
+interface ToastItem {
+  id: number;
+  tone: ToastTone;
+  message: string;
 }
 
-const toastStyles: Record<ToastVariant, { border: string; bg: string; text: string; icon: string }> = {
-  info: {
-    border: 'border-purple-500/40',
-    bg: 'bg-[#281b42]',
-    text: 'text-purple-200',
-    icon: 'ℹ️',
-  },
-  success: {
-    border: 'border-emerald-500/40',
-    bg: 'bg-emerald-950/80',
-    text: 'text-emerald-200',
-    icon: '✓',
-  },
-  error: {
-    border: 'border-red-500/40',
-    bg: 'bg-red-950/80',
-    text: 'text-red-200',
-    icon: '⚠',
-  },
-  warning: {
-    border: 'border-amber-500/40',
-    bg: 'bg-amber-950/80',
-    text: 'text-amber-200',
-    icon: '!',
-  },
+interface ToastContextValue {
+  showToast: (message: string, tone?: ToastTone) => void;
+}
+
+const ToastContext = createContext<ToastContextValue | null>(null);
+
+const toneClass: Record<ToastTone, string> = {
+  success: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100',
+  error: 'border-red-400/40 bg-red-500/15 text-red-100',
+  info: 'border-[#a39ee7]/40 bg-[#7413a8]/25 text-[#f1eaff]',
 };
 
-export function Toast({
-  variant = 'info',
-  title,
-  children,
-  onDismiss,
-  className = '',
-}: ToastProps) {
-  const current = toastStyles[variant];
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  const showToast = useCallback((message: string, tone: ToastTone = 'info') => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, tone, message }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  }, []);
+
+  const value = useMemo(() => ({ showToast }), [showToast]);
 
   return (
-    <div
-      role="status"
-      className={`flex items-start justify-between gap-3 rounded-xl border p-4 shadow-lg backdrop-blur-md ${current.border} ${current.bg} ${className}`}
-    >
-      <div className="flex items-start gap-3">
-        <span className="text-base leading-tight font-bold" aria-hidden="true">
-          {current.icon}
-        </span>
-        <div className="space-y-0.5">
-          {title && (
-            <h4 className={`text-sm font-bold ${current.text}`}>
-              {title}
-            </h4>
-          )}
-          <div className="text-xs text-slate-200 leading-relaxed">
-            {children}
+    <ToastContext.Provider value={value}>
+      {children}
+      <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-full max-w-sm flex-col gap-2">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            role="status"
+            className={`pointer-events-auto rounded-[10px] border px-4 py-3 text-sm font-medium shadow-2xl backdrop-blur ${toneClass[toast.tone]}`}
+          >
+            {toast.message}
           </div>
-        </div>
+        ))}
       </div>
-      {onDismiss && (
-        <button
-          type="button"
-          onClick={onDismiss}
-          aria-label="Cerrar notificación"
-          className="text-xs text-slate-400 hover:text-white"
-        >
-          ✕
-        </button>
-      )}
-    </div>
+    </ToastContext.Provider>
   );
+}
+
+export function useToast(): ToastContextValue {
+  const ctx = useContext(ToastContext);
+  if (!ctx) {
+    throw new Error('useToast debe usarse dentro de <ToastProvider>');
+  }
+  return ctx;
 }

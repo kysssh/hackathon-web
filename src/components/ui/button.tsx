@@ -1,74 +1,46 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { forwardRef, type ButtonHTMLAttributes } from 'react';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'light' | 'danger';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+type Variant = 'primary' | 'secondary' | 'light' | 'ghost';
+type Size = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
+  variant?: Variant;
+  size?: Size;
   loading?: boolean;
-  children: ReactNode;
 }
 
-const variantStyles: Record<ButtonVariant, string> = {
+const base =
+  'inline-flex items-center justify-center gap-2 rounded-[10px] font-bold uppercase tracking-wider ' +
+  'transition-colors disabled:opacity-50 disabled:pointer-events-none ' +
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c5c0ff]';
+
+const variantClass: Record<Variant, string> = {
   primary: 'button-primary',
   secondary: 'button-secondary',
   light: 'button-light',
-  danger: 'bg-red-600 hover:bg-red-700 text-white border border-red-500/40 rounded-xl px-5 py-2.5 font-bold uppercase text-xs tracking-wider transition-colors disabled:opacity-50',
+  ghost: 'text-[#f1eaff] hover:bg-white/10',
 };
 
-const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'px-3 py-1.5 text-xs min-h-[36px]',
-  md: 'px-5 py-2.5 text-xs min-h-[44px]',
-  lg: 'px-6 py-3.5 text-sm min-h-[52px]',
+const sizeClass: Record<Size, string> = {
+  sm: 'min-h-9 px-4 text-xs',
+  md: 'min-h-12 px-6 text-sm',
+  lg: 'min-h-14 px-8 text-base',
 };
 
-export function Button({
-  variant = 'primary',
-  size = 'md',
-  loading = false,
-  disabled,
-  children,
-  className = '',
-  ...props
-}: ButtonProps) {
-  const baseClass = variantStyles[variant];
-  const sizeClass = sizeStyles[size];
-
-  return (
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ variant = 'primary', size = 'md', loading, className = '', children, disabled, ...props }, ref) => (
     <button
-      {...props}
+      ref={ref}
       disabled={disabled || loading}
-      className={`${baseClass} ${sizeClass} ${className} ${disabled || loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`${base} ${variantClass[variant]} ${sizeClass[size]} ${className}`}
+      {...props}
     >
-      {loading ? (
-        <span className="flex items-center gap-2">
-          <svg
-            className="h-4 w-4 animate-spin text-current"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v8H4z"
-            />
-          </svg>
-          <span>Cargando…</span>
-        </span>
-      ) : (
-        children
+      {loading && (
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
       )}
+      {children}
     </button>
-  );
-}
+  ),
+);
+
+Button.displayName = 'Button';

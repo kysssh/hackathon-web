@@ -7,62 +7,57 @@ export interface DialogProps {
   onClose: () => void;
   title?: string;
   description?: string;
-  children: ReactNode;
+  children?: ReactNode;
+  footer?: ReactNode;
 }
 
-export function Dialog({
-  open,
-  onClose,
-  title,
-  description,
-  children,
-}: DialogProps) {
+export function Dialog({ open, onClose, title, description, children, footer }: DialogProps) {
   useEffect(() => {
     if (!open) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
   }, [open, onClose]);
 
   if (!open) return null;
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="presentation"
     >
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-white/20 bg-[#201534] p-6 shadow-2xl sm:p-8">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? 'dialog-title' : undefined}
+        className="w-full max-w-md rounded-[18px] border border-white/10 bg-[#241a38] shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {(title || description) && (
+          <div className="border-b border-white/10 px-6 py-5">
             {title && (
-              <h2 className="text-xl font-bold text-white sm:text-2xl">
+              <h2 id="dialog-title" className="text-lg font-bold text-[#f1eaff]">
                 {title}
               </h2>
             )}
             {description && (
-              <p className="mt-1 text-sm text-slate-300">
-                {description}
-              </p>
+              <p className="mt-1 text-sm text-[#c5bfd3]">{description}</p>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar modal"
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="mt-6">{children}</div>
+        )}
+        {children && <div className="px-6 py-5 text-sm text-[#f1eaff]">{children}</div>}
+        {footer && (
+          <div className="flex justify-end gap-3 border-t border-white/10 px-6 py-4">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );

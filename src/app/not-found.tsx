@@ -1,27 +1,18 @@
 import Link from 'next/link';
-
 import { PublicShell } from '@/components/ui/public-shell';
 
-export default function RootNotFound() {
+export default function NotFound() {
   return (
     <PublicShell>
-      <section className="section-wrap text-center py-24">
-        <span className="brand-mark brand-mark-large mx-auto mb-6" aria-hidden="true">
-          404
-        </span>
-        <h1 className="display-font text-5xl uppercase tracking-wide sm:text-7xl">
-          Página no encontrada
-        </h1>
-        <p className="mt-5 max-w-md mx-auto text-slate-300">
-          La dirección que buscas no existe o fue movida.
+      <section className="section-wrap mx-auto max-w-2xl text-center">
+        <span className="display-font text-8xl text-purple-200/70">404</span>
+        <h1 className="display-font mt-6 text-4xl uppercase sm:text-5xl">No encontramos esta página</h1>
+        <p className="mt-5 text-lg leading-8 text-slate-300">
+          Puede que el enlace esté roto, que el proyecto ya no esté publicado o que hayas escrito mal la dirección.
         </p>
-        <div className="mt-8 flex justify-center gap-4">
-          <Link href="/" className="button-primary">
-            Ir al inicio
-          </Link>
-          <Link href="/galeria" className="button-secondary">
-            Ver proyectos
-          </Link>
+        <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link href="/" className="button-primary">Volver al inicio</Link>
+          <Link href="/galeria" className="button-secondary">Explorar la galería</Link>
         </div>
       </section>
     </PublicShell>

@@ -1,34 +1,22 @@
 import type { ReactNode } from 'react';
 
 export interface EmptyStateProps {
-  icon?: ReactNode;
   title: string;
   description?: string;
+  icon?: ReactNode;
   action?: ReactNode;
   className?: string;
 }
 
-export function EmptyState({
-  icon = '✶',
-  title,
-  description,
-  action,
-  className = '',
-}: EmptyStateProps) {
+export function EmptyState({ title, description, icon, action, className = '' }: EmptyStateProps) {
   return (
     <div
-      className={`info-panel flex flex-col items-center justify-center p-8 text-center sm:p-12 ${className}`}
+      className={`flex flex-col items-center justify-center rounded-[18px] border border-dashed border-white/15 bg-[#241a38]/60 px-6 py-14 text-center ${className}`}
     >
-      <div className="display-font text-5xl text-purple-300/80 mb-3" aria-hidden="true">
-        {icon}
-      </div>
-      <h3 className="text-xl font-bold text-white sm:text-2xl">
-        {title}
-      </h3>
+      {icon && <div className="mb-4 text-4xl text-[#c5c0ff]">{icon}</div>}
+      <h3 className="display-font text-2xl uppercase text-[#f1eaff]">{title}</h3>
       {description && (
-        <p className="mt-2 max-w-md text-sm text-slate-300 leading-relaxed">
-          {description}
-        </p>
+        <p className="mt-3 max-w-md text-sm leading-6 text-[#c5bfd3]">{description}</p>
       )}
       {action && <div className="mt-6">{action}</div>}
     </div>
