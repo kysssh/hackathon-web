@@ -27,6 +27,9 @@ const MESSAGES: Record<ErrorCode, string> = {
   FILE_NOT_UPLOADED: 'No pudimos confirmar la subida del archivo.',
 
   EVALUATION_CLOSED: 'El plazo para calificar ya cerró.',
+
+  PROFILE_INCOMPLETE:
+    'Completa tus nombres, apellidos y universidad antes de continuar.',
 };
 
 export function getErrorMessage(code: string): string {
