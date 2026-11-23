@@ -19,11 +19,13 @@ import {
   createStoragePath,
   validateFile,
 } from './rules';
+import { normalizeContentType } from './mime';
 
 const uploadRequestSchema = z.object({
   kind: z.enum(['PITCH_DECK', 'EXTRA', 'COVER_IMAGE']),
   fileName: z.string().trim().min(1).max(200),
-  contentType: z.string().min(1).max(100),
+  // Se guarda el tipo canónico (p. ej. application/x-zip-compressed → application/zip).
+  contentType: z.string().max(100).transform(normalizeContentType).pipe(z.string().min(1)),
   sizeBytes: z.number().int().positive(),
 });
 
@@ -75,11 +77,13 @@ export const confirmUploadAction = createAction(
     const bucket = bucketForKind(input.kind);
     const stored = await getStoredFile(bucket, input.storagePath);
     validateFile({ kind: input.kind, ...stored });
+    // El objeto subido debe ser exactamente el autorizado (la ruta firmada ya
+    // incluye tipo y tamaño). El tipo se compara normalizado.
     if (
       stored.sizeBytes !== input.sizeBytes ||
-      stored.contentType !== input.contentType
+      normalizeContentType(stored.contentType) !== input.contentType
     )
-      throw new ActionError('VALIDATION_ERROR');
+      throw new ActionError('FILE_NOT_UPLOADED');
 
     const result = await db.$transaction(async (tx) => {
       // El mismo bloqueo se usa al enviar: confirmar y enviar no pueden intercalarse.
@@ -100,7 +104,7 @@ export const confirmUploadAction = createAction(
           bucket,
           storagePath: input.storagePath,
           originalName: input.fileName,
-          contentType: stored.contentType,
+          contentType: normalizeContentType(stored.contentType),
           sizeBytes: stored.sizeBytes,
         },
         select: { id: true },
