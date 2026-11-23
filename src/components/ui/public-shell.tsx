@@ -12,7 +12,10 @@ function ParticipateLinks() {
   return (
     <div className="mt-5 grid gap-3 text-sm text-slate-300">
       {status === 'authenticated' ? (
-        <Link href="/panel">Mi panel</Link>
+        <>
+          <Link href="/completar-perfil">Mi cuenta</Link>
+          <Link href="/panel">Mi panel</Link>
+        </>
       ) : status === 'unauthenticated' ? (
         <Link href="/ingresar">Ingresar</Link>
       ) : null}

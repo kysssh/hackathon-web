@@ -4,6 +4,7 @@ import { PublicShell } from '@/components/ui/public-shell';
 import { requireUser } from '@/lib/auth/session';
 import { splitOAuthName } from '@/lib/profile/rules';
 
+import { DeleteAccountSection } from './delete-account-section';
 import { ProfileForm } from './profile-form';
 
 export const dynamic = 'force-dynamic';
@@ -49,6 +50,10 @@ export default async function CompletarPerfilPage() {
           <ProfileForm
             initial={initial}
             isEditing={user.profileComplete}
+          />
+          <DeleteAccountSection
+            isTeamLeader={user.isTeamLeader}
+            isJudge={user.role === 'JUDGE'}
           />
         </div>
       </section>
