@@ -1,10 +1,10 @@
 ﻿# Revisión manual
 
-## Estado de las verificaciones automáticas — 21 de noviembre de 2026
+## Estado de las verificaciones automáticas — 23 de noviembre de 2026
 
-La suite unitaria (`npm test`, 18 casos), ESLint, TypeScript, la generación de Prisma y el build finalizaron correctamente en local. El detalle y el estado del CI remoto están en el [informe de estado](ESTADO_PROYECTO_2026-11-21.md).
+La suite unitaria contiene 30 casos y pasó completamente en local. ESLint, TypeScript, la generación de Prisma y el build de Next.js también finalizaron correctamente. La feature `perfil-equipos-y-subida-archivos` fue integrada en `release/deploy-2026-11-21`.
 
-El workflow remoto del commit `75ba309` está registrado como fallido en `npm ci` por discrepancias del lockfile y no alcanzó las etapas de test/build. La instalación local actual pasó; falta subir los cambios y confirmar un workflow remoto verde. Las casillas siguientes requieren evidencia de aceptación; las pruebas automáticas no las completan.
+Las cuatro migraciones están aplicadas en la base Supabase configurada. CORS respondió correctamente para el Storage y los buckets existen con límites y tipos MIME configurados. No se ha publicado aún la rama ni se ha completado la aceptación OAuth/Storage interactiva desde el dominio definitivo. Las casillas siguientes requieren evidencia de aceptación; las pruebas automáticas no las completan.
 
 Con la aplicación en ejecución y datos de prueba, realizar las siguientes acciones. Marcar cada punto como funciona, falla o no se pudo probar. No usar datos reales de producción para estas pruebas.
 

@@ -1,6 +1,6 @@
 # Google y GitHub: preparación de OAuth para producción
 
-Actualizado el 21 de noviembre de 2026. La aplicación tiene proveedores Google/GitHub, adaptador Prisma y sesión JWT. **No se ha acreditado el inicio de sesión desde el dominio final ni la configuración de producción**; esta guía es una lista de preparación, no una certificación.
+Actualizado el 23 de noviembre de 2026. La aplicación tiene proveedores Google/GitHub, adaptador Prisma y sesión JWT. La vinculación de cuentas por correo fue habilitada con `allowDangerousEmailAccountLinking: true` y el perfil obligatorio fue agregado para participantes. **No se ha acreditado el inicio de sesión desde el dominio final ni la configuración de producción**; esta guía sigue siendo una lista de preparación, no una certificación.
 
 El cierre del proyecto debe incluir las pruebas interactivas de ambos proveedores con participante, jurado y organizador, además del smoke test publicado. El estado vigente y las demás dependencias de despliegue están en [el informe de estado](ESTADO_PROYECTO_2026-11-21.md).
 

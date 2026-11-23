@@ -6,12 +6,12 @@ export const tracks = [
 
 export const milestones = [
   { date: '10 Nov', title: 'Anuncio oficial', description: 'Publicación de las bases y convocatoria para estudiantes universitarios de distintas instituciones.' },
-  { date: '17 Nov', title: 'Envío de invitaciones', description: 'Distribución oficial a universidades y pre-registro para más de 20 equipos participantes.' },
-  { date: '24 Nov', title: 'Kickoff e inauguración', description: 'Jornada inaugural en la Universidad Nacional de Ingeniería (UNI) y cierre de conformación de equipos.' },
-  { date: '27–28 Nov', title: 'Primer entregable', description: 'Subida del primer avance técnico y selección de los 15 equipos clasificados.' },
-  { date: '01 Dic', title: 'Segundo entregable', description: 'Presentación del prototipo funcional y selección de los 10 mejores equipos.' },
-  { date: '04 Dic', title: 'Semifinal virtual', description: 'Evaluación remota con el jurado y selección de los 5 equipos finalistas.' },
-  { date: '05 Dic', title: 'Demo Day presencial', description: 'Presentación final de proyectos ante el jurado y premiación oficial en la UNI.' },
+  { date: '25 Nov', title: 'Envío de invitaciones', description: 'Distribución oficial a universidades y pre-registro para los equipos participantes.' },
+  { date: '05 Dic', title: 'Kickoff e inauguración', description: 'Jornada inaugural en la Universidad Nacional de Ingeniería (UNI) y cierre de conformación de equipos.' },
+  { date: '06 Dic', title: 'Primer entregable', description: 'Subida del primer avance técnico y selección de los 15 equipos clasificados.' },
+  { date: '08 Dic', title: 'Segundo entregable', description: 'Presentación del prototipo funcional y selección de los 10 mejores equipos.' },
+  { date: '10 Dic', title: 'Semifinal virtual', description: 'Evaluación remota con el jurado y selección de los 5 equipos finalistas.' },
+  { date: '12 Dic', title: 'Demo Day y Gran Final', description: 'Presentación final de proyectos ante el jurado y premiación oficial en la UNI.' },
 ] as const;
 
 export const faqs = [

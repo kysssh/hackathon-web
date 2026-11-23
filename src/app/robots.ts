@@ -3,9 +3,10 @@ import type { MetadataRoute } from 'next';
 export const dynamic = 'force-dynamic';
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = process.env.NEXTAUTH_URL;
+  const siteUrl = process.env.NEXTAUTH_URL ?? process.env.AUTH_URL ?? '';
   if (!siteUrl) {
-    throw new Error('NEXTAUTH_URL es obligatoria para generar robots.txt.');
+    // Si no hay URL configurada, devolvemos robots.txt mínimo sin crashear el sitio.
+    return { rules: [{ userAgent: '*', allow: '/' }] };
   }
 
   return {

@@ -49,10 +49,10 @@ describe('Reglas de Equipos (Team Rules)', () => {
   });
 
   it('verifica correctamente el cierre de inscripciones según la fecha', () => {
-    // Antes del cierre
-    assert.equal(isRegistrationClosed('2026-10-10T12:00:00-05:00'), false);
+    // Antes del cierre (cierra el 5 de diciembre)
+    assert.equal(isRegistrationClosed('2026-11-20T12:00:00-05:00'), false);
     // Después del cierre
-    assert.equal(isRegistrationClosed('2026-12-01T12:00:00-05:00'), true);
+    assert.equal(isRegistrationClosed('2026-12-06T12:00:00-05:00'), true);
   });
 });
 
@@ -82,13 +82,16 @@ describe('Reglas del Proyecto (Project Rules)', () => {
   });
 
   it('determina correctamente el estado de la ventana de entregas (SubmissionWindow)', () => {
-    const before = getSubmissionWindow('2026-11-15T00:00:00-05:00');
+    // Antes de la apertura (abre el 5 de diciembre)
+    const before = getSubmissionWindow('2026-11-20T00:00:00-05:00');
     assert.equal(before.status, 'NOT_OPEN');
 
-    const during = getSubmissionWindow('2026-11-26T12:00:00-05:00');
+    // Durante la ventana de entregas (5 al 8 de diciembre)
+    const during = getSubmissionWindow('2026-12-06T12:00:00-05:00');
     assert.equal(during.status, 'OPEN');
 
-    const after = getSubmissionWindow('2026-12-05T00:00:00-05:00');
+    // Después del cierre (cierra el 8 de diciembre)
+    const after = getSubmissionWindow('2026-12-09T00:00:00-05:00');
     assert.equal(after.status, 'CLOSED');
   });
 });

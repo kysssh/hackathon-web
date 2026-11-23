@@ -15,14 +15,14 @@ export const eventConfig = {
   dates: {
     /** 10 de noviembre: Anuncio oficial y apertura de registro. */
     registrationOpensAt: '2026-11-10T00:00:00-05:00',
-    /** 24 de noviembre: Kickoff e inauguración (cierre de inscripciones). */
-    registrationClosesAt: '2026-11-24T23:59:00-05:00',
-    /** 24 de noviembre: Apertura de plataforma para entregas. */
-    submissionOpensAt: '2026-11-24T00:00:00-05:00',
-    /** 1 de diciembre: Segundo entregable y selección de 10 equipos. */
-    submissionClosesAt: '2026-12-01T23:59:00-05:00',
-    /** 5 de diciembre: Demo Day y presentación final de proyectos. */
-    evaluationClosesAt: '2026-12-05T22:00:00-05:00',
+    /** 5 de diciembre: Kickoff e inauguración (cierre de inscripciones). */
+    registrationClosesAt: '2026-12-05T23:59:00-05:00',
+    /** 5 de diciembre: Apertura de plataforma para entregas. */
+    submissionOpensAt: '2026-12-05T00:00:00-05:00',
+    /** 8 de diciembre: Segundo entregable y selección de 10 equipos. */
+    submissionClosesAt: '2026-12-08T23:59:00-05:00',
+    /** 12 de diciembre: Demo Day y presentación final de proyectos. */
+    evaluationClosesAt: '2026-12-12T22:00:00-05:00',
   },
 
   team: {
