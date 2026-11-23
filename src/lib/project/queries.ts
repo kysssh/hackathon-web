@@ -5,6 +5,7 @@ import { criteria } from '@/config/criteria';
 import { eventConfig } from '@/config/event';
 import { getCurrentUser } from '@/lib/auth/session';
 import { db } from '@/lib/db';
+import { displayName } from '@/lib/profile/rules';
 import type {
   GalleryFilter,
   GalleryProjectCardDto,
@@ -188,7 +189,15 @@ export async function getGalleryProject(
             members: {
               orderBy: { joinedAt: 'asc' },
               select: {
-                user: { select: { name: true, image: true } },
+                user: {
+                  select: {
+                    name: true,
+                    firstName: true,
+                    lastName: true,
+                    university: true,
+                    image: true,
+                  },
+                },
               },
             },
           },
@@ -218,7 +227,8 @@ export async function getGalleryProject(
     demoUrl: project.demoUrl,
     videoUrl: project.videoUrl,
     members: project.team.members.map(({ user }) => ({
-      name: user.name,
+      name: displayName(user, ''),
+      university: user.university,
       image: user.image,
     })),
   };

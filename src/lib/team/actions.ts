@@ -37,6 +37,7 @@ const createTeamSchema = z.object({
 export const createTeamAction = createAction(
   createTeamSchema,
   async ({ name }, user) => {
+    if (!user.profileComplete) throw new ActionError('PROFILE_INCOMPLETE');
     if (isRegistrationClosed(serverNow())) throw new ActionError('TEAM_REGISTRATION_CLOSED');
     if (user.teamId) throw new ActionError('TEAM_ALREADY_MEMBER');
     for (let attempt = 0; attempt < MAX_JOIN_CODE_ATTEMPTS; attempt++) {
@@ -88,6 +89,7 @@ const joinTeamSchema = z.object({
 export const joinTeamAction = createAction(
   joinTeamSchema,
   async ({ joinCode }, user) => {
+    if (!user.profileComplete) throw new ActionError('PROFILE_INCOMPLETE');
     if (isRegistrationClosed(serverNow())) throw new ActionError('TEAM_REGISTRATION_CLOSED');
     if (user.teamId) throw new ActionError('TEAM_ALREADY_MEMBER');
 
