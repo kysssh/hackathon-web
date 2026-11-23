@@ -36,9 +36,21 @@ type FormState = {
 };
 
 const URL_FIELDS = [
-  { field: 'repositoryUrl', label: 'Repositorio' },
-  { field: 'demoUrl', label: 'Demo' },
-  { field: 'videoUrl', label: 'Video' },
+  {
+    field: 'repositoryUrl',
+    label: 'Repositorio',
+    hint: 'Enlace al código fuente, por ejemplo, en GitHub.',
+  },
+  {
+    field: 'demoUrl',
+    label: 'Demo',
+    hint: 'Enlace a una versión funcional o demostración del proyecto.',
+  },
+  {
+    field: 'videoUrl',
+    label: 'Video',
+    hint: 'Pega un enlace al video; aquí no se sube el archivo de video.',
+  },
 ] as const;
 
 function isValidOptionalUrl(value: string) {
@@ -169,6 +181,7 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
           label="Resumen"
           data-testid="project-summary"
           rows={3}
+          placeholder="Ejemplo: Una app que conecta a jóvenes con actividades culturales gratuitas cerca de su comunidad."
           value={form.summary}
           onChange={(e) => update('summary', e.target.value)}
           readOnly={locked}
@@ -182,6 +195,7 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
         label="Descripción"
         data-testid="project-description"
         rows={6}
+        placeholder="Problema: muchas personas no conocen las actividades culturales disponibles. Solución: una app que reúne eventos cercanos y permite filtrar por intereses. Explica cómo funciona, a quién beneficia y qué herramientas usarás."
         value={form.description}
         onChange={(e) => update('description', e.target.value)}
         readOnly={locked}
@@ -189,11 +203,12 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        {URL_FIELDS.map(({ field, label }) => (
+        {URL_FIELDS.map(({ field, label, hint }) => (
           <Input
             key={field}
             id={field}
             label={label}
+            hint={hint}
             data-testid={`project-${field}`}
             value={form[field]}
             onChange={(e) => update(field, e.target.value)}

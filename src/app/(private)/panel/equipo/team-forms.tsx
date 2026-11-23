@@ -22,8 +22,7 @@ const NAME_MAX = 40;
 
 /**
  * Sin equipo todavía: dos formularios, crear o unirse.
- * Al tener éxito, refrescamos la ruta para que el Server Component (page.tsx)
- * vuelva a llamar a getMyTeam() y muestre la tarjeta real.
+ * Al tener éxito, continuamos a las secciones del proyecto.
  */
 export function NoTeamForms() {
   const router = useRouter();
@@ -48,7 +47,7 @@ export function NoTeamForms() {
     setNameError(undefined);
     create.run({ name: clean }, () => {
       showToast('Equipo creado.', 'success');
-      router.refresh();
+      router.push('/panel/proyecto');
     });
   }
 
@@ -64,7 +63,7 @@ export function NoTeamForms() {
     setCodeError(undefined);
     join.run({ joinCode: code }, () => {
       showToast('Te uniste al equipo.', 'success');
-      router.refresh();
+      router.push('/panel/proyecto');
     });
   }
 
@@ -117,6 +116,9 @@ export function NoTeamForms() {
         data-testid="team-join-form"
       >
         <h2 className="font-medium">Unirme con un código</h2>
+        <p className="text-sm text-slate-400">
+          El código de invitación te lo debe compartir el líder del equipo.
+        </p>
 
         <Input
           id="join-code"
@@ -159,6 +161,7 @@ export function TeamCard({ team }: { team: TeamDto }) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
+    if (!team.joinCode) return;
     try {
       await navigator.clipboard.writeText(team.joinCode);
       setCopied(true);
@@ -192,28 +195,37 @@ export function TeamCard({ team }: { team: TeamDto }) {
         {team.memberCount} de {maxMembers} integrantes (mínimo {minMembers})
       </p>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-slate-400">Código:</span>
-        <code
-          data-testid="team-join-code-display"
-          className="rounded bg-white/10 px-2 py-1"
+      {team.joinCode ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-slate-400">Código:</span>
+          <code
+            data-testid="team-join-code-display"
+            className="rounded bg-white/10 px-2 py-1"
+          >
+            {team.joinCode}
+          </code>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            data-testid="team-copy-code"
+            onClick={handleCopy}
+          >
+            {copied ? 'Copiado' : 'Copiar'}
+          </Button>
+          <span role="status" className="sr-only">
+            {copied ? 'Código copiado' : ''}
+          </span>
+        </div>
+      ) : (
+        <p
+          data-testid="team-join-code-private"
+          className="mt-3 text-sm text-slate-400"
         >
-          {team.joinCode}
-        </code>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          data-testid="team-copy-code"
-          onClick={handleCopy}
-          disabled={team.isFull}
-        >
-          {copied ? 'Copiado' : 'Copiar'}
-        </Button>
-        <span role="status" className="sr-only">
-          {copied ? 'Código copiado' : ''}
-        </span>
-      </div>
+          Solo el líder puede consultar el código de invitación. Pídeselo si
+          quieres invitar a alguien más.
+        </p>
+      )}
 
       <h3 className="mt-6 text-sm font-semibold text-slate-300">Integrantes</h3>
       <ul className="mt-2 divide-y divide-white/10" data-testid="team-members">
