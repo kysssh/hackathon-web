@@ -127,6 +127,7 @@ function toTeamDto(team: {
     id: team.id,
     name: team.name,
     joinCode: team.leaderId === currentUserId ? team.joinCode : null,
+    isLeader: team.leaderId === currentUserId,
     members: team.members.map((member) => ({
       userId: member.userId,
       name: member.user.name,

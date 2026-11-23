@@ -126,10 +126,35 @@ export async function getStoredFile(
   return listed;
 }
 
+/** Elimina varios objetos por bucket con reintentos ante fallos temporales. */
+export async function removeStoredFiles(
+  files: readonly { bucket: string; storagePath: string }[]
+): Promise<void> {
+  const pathsByBucket = new Map<string, string[]>();
+  for (const file of files) {
+    const paths = pathsByBucket.get(file.bucket) ?? [];
+    paths.push(file.storagePath);
+    pathsByBucket.set(file.bucket, paths);
+  }
+
+  await Promise.all(
+    [...pathsByBucket].map(async ([bucket, prefixes]) => {
+      await removeStoredObjects(bucket, prefixes);
+    })
+  );
+}
+
 /** DELETE idempotente con reintentos ante fallos temporales. */
 export async function removeStoredFile(
   bucket: string,
   path: string
+): Promise<void> {
+  await removeStoredFiles([{ bucket, storagePath: path }]);
+}
+
+async function removeStoredObjects(
+  bucket: string,
+  prefixes: string[]
 ): Promise<void> {
   const maxAttempts = 3;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -138,7 +163,7 @@ export async function removeStoredFile(
       response = await request(
         `/object/${encodeURIComponent(bucket)}`,
         'DELETE',
-        { prefixes: [path] }
+        { prefixes }
       );
     } catch (error) {
       if (attempt === maxAttempts) throw error;

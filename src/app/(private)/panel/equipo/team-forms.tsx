@@ -7,11 +7,18 @@ import { useAction } from '@/components/private/hooks/use-action';
 import { LiveRefresh } from '@/components/private/live-refresh';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
 import { eventConfig } from '@/config/event';
 import type { TeamDto } from '@/lib/queries/dtos';
-import { createTeamAction, joinTeamAction } from '@/lib/team/actions';
+import {
+  createTeamAction,
+  deleteMyTeamAction,
+  joinTeamAction,
+  leaveMyTeamAction,
+  renameMyTeamAction,
+} from '@/lib/team/actions';
 
 const { minMembers, maxMembers } = eventConfig.team;
 
@@ -158,7 +165,32 @@ export function NoTeamForms() {
 
 /** Ya tienes equipo: la tarjeta con integrantes y el botón de copiar código. */
 export function TeamCard({ team }: { team: TeamDto }) {
+  const router = useRouter();
+  const { showToast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [name, setName] = useState(team.name);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const rename = useAction(renameMyTeamAction);
+  const leave = useAction(leaveMyTeamAction);
+  const remove = useAction(deleteMyTeamAction);
+
+  function handleRename(e: React.FormEvent) {
+    e.preventDefault();
+    const clean = name.trim().replace(/\s+/g, ' ');
+    rename.run({ name: clean }, () => {
+      showToast('Nombre del equipo actualizado.', 'success');
+      router.refresh();
+    });
+  }
+
+  function closeLeaveIfIdle() {
+    if (!leave.pending) setLeaveOpen(false);
+  }
+
+  function closeDeleteIfIdle() {
+    if (!remove.pending) setDeleteOpen(false);
+  }
 
   async function handleCopy() {
     if (!team.joinCode) return;
@@ -187,6 +219,45 @@ export function TeamCard({ team }: { team: TeamDto }) {
           <Badge tone="warning">Falta gente para el mínimo</Badge>
         )}
       </div>
+
+      {team.isLeader && (
+        <form
+          onSubmit={handleRename}
+          noValidate
+          aria-busy={rename.pending}
+          className="mt-4 flex flex-wrap items-end gap-3"
+          data-testid="team-rename-form"
+        >
+          <div className="min-w-[220px] flex-1">
+            <Input
+              id="team-rename"
+              label="Editar nombre del equipo"
+              data-testid="team-rename-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={NAME_MAX}
+              error={rename.fieldErrors.name?.[0]}
+            />
+          </div>
+          <Button
+            type="submit"
+            size="sm"
+            data-testid="team-rename-submit"
+            loading={rename.pending}
+          >
+            Guardar nombre
+          </Button>
+          {rename.error && (
+            <p
+              role="alert"
+              data-testid="team-rename-error"
+              className="w-full text-sm text-red-300"
+            >
+              {rename.error}
+            </p>
+          )}
+        </form>
+      )}
 
       <p
         data-testid="team-member-count"
@@ -247,6 +318,142 @@ export function TeamCard({ team }: { team: TeamDto }) {
           </li>
         ))}
       </ul>
+
+      <div className="mt-6 flex flex-wrap gap-3 border-t border-white/10 pt-5">
+        {team.isLeader ? (
+          <Button
+            type="button"
+            variant="secondary"
+            data-testid="team-delete-open"
+            className="border border-red-400/50 text-red-100 hover:bg-red-500/15"
+            onClick={() => setDeleteOpen(true)}
+          >
+            Eliminar equipo
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="secondary"
+            data-testid="team-leave-open"
+            className="border border-amber-300/40 text-amber-100 hover:bg-amber-500/10"
+            onClick={() => setLeaveOpen(true)}
+          >
+            Salirme del equipo
+          </Button>
+        )}
+      </div>
+
+      <Dialog
+        open={leaveOpen}
+        onClose={closeLeaveIfIdle}
+        title="¿Quieres salir del equipo?"
+        description="Tu cuenta no se eliminará."
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              data-testid="team-leave-cancel"
+              disabled={leave.pending}
+              onClick={closeLeaveIfIdle}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              data-testid="team-leave-confirm"
+              loading={leave.pending}
+              className="border border-amber-300/40 text-amber-100 hover:bg-amber-500/10"
+              onClick={() =>
+                leave.run({}, () => {
+                  setLeaveOpen(false);
+                  showToast('Saliste del equipo.', 'success');
+                  router.refresh();
+                })
+              }
+            >
+              Sí, salir del equipo
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <p>
+            Solo se quitará tu membresía. El equipo y su proyecto seguirán
+            existiendo.
+          </p>
+          <p>
+            Si el equipo queda por debajo del mínimo de integrantes, no podrá
+            entregar el proyecto hasta completar el mínimo.
+          </p>
+          {leave.error && (
+            <p
+              role="alert"
+              data-testid="team-leave-error"
+              className="text-sm text-red-300"
+            >
+              {leave.error}
+            </p>
+          )}
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={deleteOpen}
+        onClose={closeDeleteIfIdle}
+        title="¿Eliminar el equipo?"
+        description="Esta acción es permanente y no se puede deshacer."
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              data-testid="team-delete-cancel"
+              disabled={remove.pending}
+              onClick={closeDeleteIfIdle}
+            >
+              No, conservar el equipo
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              data-testid="team-delete-confirm"
+              loading={remove.pending}
+              className="border border-red-400/50 text-red-100 hover:bg-red-500/15"
+              onClick={() =>
+                remove.run({}, () => {
+                  setDeleteOpen(false);
+                  showToast('Se eliminó el equipo.', 'success');
+                  router.refresh();
+                })
+              }
+            >
+              Sí, eliminar equipo
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <p>
+            Se eliminarán el equipo, su proyecto, los archivos y las
+            evaluaciones asociadas.
+          </p>
+          <p>
+            Las cuentas de los demás integrantes permanecerán, pero quedarán
+            sin equipo.
+          </p>
+          {remove.error && (
+            <p
+              role="alert"
+              data-testid="team-delete-error"
+              className="text-sm text-red-300"
+            >
+              {remove.error}
+            </p>
+          )}
+        </div>
+      </Dialog>
     </div>
   );
 }

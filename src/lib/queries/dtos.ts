@@ -2,6 +2,7 @@ export type TeamDto = {
   id: string;
   name: string;
   joinCode: string | null;
+  isLeader: boolean;
   /** fullName: nombres y apellidos del perfil (o el nombre de OAuth si aún no los completó). */
   members: { userId: string; name: string | null; fullName: string; university: string | null; image: string | null; isLeader: boolean }[];
   memberCount: number;

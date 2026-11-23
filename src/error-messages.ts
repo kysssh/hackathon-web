@@ -15,6 +15,10 @@ const MESSAGES: Record<ErrorCode, string> = {
   TEAM_REGISTRATION_CLOSED: 'Las inscripciones de equipos ya cerraron.',
   TEAM_TOO_SMALL: 'Tu equipo necesita más integrantes para enviar el proyecto.',
   TEAM_LEADER_REQUIRED: 'Solo el líder del equipo puede hacer esto.',
+  TEAM_LEADER_CANNOT_LEAVE:
+    'Como líder no puedes salir del equipo; puedes eliminarlo si deseas disolverlo.',
+  TEAM_DELETE_STORAGE_FAILED:
+    'No se pudieron eliminar todos los archivos del proyecto. El equipo sigue activo; inténtalo de nuevo más tarde.',
 
   PROJECT_INCOMPLETE: 'Completa los campos faltantes antes de enviar.',
   PROJECT_NOT_SUBMITTED: 'Este proyecto todavía no fue enviado.',
@@ -30,6 +34,8 @@ const MESSAGES: Record<ErrorCode, string> = {
 
   PROFILE_INCOMPLETE:
     'Completa tus nombres, apellidos y universidad antes de continuar.',
+  ACCOUNT_DELETE_STORAGE_FAILED:
+    'No se pudieron eliminar todos los archivos del equipo. Tu cuenta sigue activa; inténtalo de nuevo más tarde.',
 };
 
 export function getErrorMessage(code: string): string {

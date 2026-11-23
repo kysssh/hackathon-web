@@ -77,6 +77,12 @@ export function PublicNav() {
 
           {status === 'authenticated' ? (
             <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+              <Link
+                href="/completar-perfil"
+                className="hidden text-link text-xs md:inline"
+              >
+                Mi cuenta
+              </Link>
               {data?.user.role === 'PARTICIPANT' && (
                 <Link
                   href="/panel/equipo"
@@ -135,6 +141,13 @@ export function PublicNav() {
             ))}
             {status === 'authenticated' ? (
               <>
+                <Link
+                  href="/completar-perfil"
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm text-slate-200 hover:bg-white/10"
+                >
+                  Mi cuenta
+                </Link>
                 {data?.user.role === 'PARTICIPANT' && (
                   <Link
                     href="/panel/equipo"
