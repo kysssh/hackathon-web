@@ -16,7 +16,7 @@ function parseEmailList(raw: string | undefined): Set<string> {
   return new Set(
     (raw ?? '')
       .split(',')
-      .map((email) => email.trim().toLowerCase())
+      .map((email) => email.replace(/['"\r\n\t]/g, '').trim().toLowerCase())
       .filter((email) => email.length > 0),
   );
 }

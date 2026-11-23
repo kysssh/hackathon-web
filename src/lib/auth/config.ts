@@ -121,7 +121,10 @@ function buildAdapter(): Adapter {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   adapter: buildAdapter(),
-  providers: [Google, GitHub],
+  providers: [
+    Google({ allowDangerousEmailAccountLinking: true }),
+    GitHub({ allowDangerousEmailAccountLinking: true }),
+  ],
   // Con adaptador, Auth.js usaría sesiones en la base por defecto; aquí se sigue con la cookie firmada (JWT).
   session: { strategy: 'jwt' },
 
