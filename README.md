@@ -4,14 +4,14 @@ Aplicación para gestionar equipos, proyectos, entregas, evaluaciones y una gale
 
 ## Estado actual
 
-Actualizado el **21 de noviembre de 2026**, según el código local y las verificaciones descritas en el [informe de estado y despliegue](docs/ESTADO_PROYECTO_2026-11-21.md). El proyecto compila localmente, pero **todavía no se debe declarar listo para producción**: falta confirmar CI remoto, completar la aceptación manual y comprobar servicios reales.
+Actualizado el **23 de noviembre de 2026**. La feature de perfil de usuario y archivos está integrada en la rama `release/deploy-2026-11-21`, commit de integración `c4bd6df`. Las migraciones de Prisma ya están aplicadas a la base configurada de Supabase y la aplicación pasó lint, tipos, pruebas y build locales.
 
-El estado de Git revisado es la rama `develop`, commit `75ba309`. El árbol local contiene cambios sin confirmar; el informe identifica sus límites y el resultado del CI.
+La aplicación está integrada y compilable, pero **todavía requiere el push, CI verde y aceptación manual de OAuth/Storage en el dominio publicado** antes de comunicarse como lanzamiento terminado.
 
 | Rol                                | Implementado                                                                                                                  | Pendiente principal                                                                                                     |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **BD — Base de datos**             | Ocho modelos, dos migraciones, cliente Prisma, semilla y las diez consultas del contrato.                                     | Validar semilla idempotente, rendimiento y producción sin datos de prueba.                                              |
-| **BK — Backend**                   | Auth.js Google/GitHub, sesión y roles; acciones de equipos, borrador, archivos, envío, evaluación y organización.             | Verificar OAuth interactivo, Storage, permisos y concurrencia con servicios reales. Confirmar fechas, límites y escala. |
+| **BD — Base de datos**             | Nueve modelos, cuatro migraciones aplicadas, perfil de usuario, índice de archivos, cliente Prisma y semilla.                | Ejecutar el seed solo en desarrollo y validar datos reales sin sembrar producción.                                     |
+| **BK — Backend**                   | Auth.js Google/GitHub, sesión y roles; perfil obligatorio, equipos, archivos, envío, evaluación y organización.             | Verificar OAuth interactivo, permisos de Storage y concurrencia con cuentas reales en producción.                      |
 | **UX — Diseño y páginas públicas** | Inicio, información, cronograma, mentores/jurado, criterios, FAQ, galería y detalle; navegación móvil, insignias, metadatos, sitemap y robots. | Completar componentes y `/dev/ui`; verificar URLs SEO con el dominio real, contenido oficial y accesibilidad/móvil. |
 | **FE — Frontend privado**          | Ingreso, panel, equipos, proyecto, subida real, jurado y organización con detalle, descargas y publicación.                   | Completar bloqueo visual al cierre, actualización del equipo entre usuarios y validación del flujo.                     |
 | **DP — Despliegue y pruebas**      | Suite unitaria, workflow de CI y comandos locales de lint, tipos y build.                                                     | Reparar y volver a ejecutar CI remoto; completar la aceptación manual y verificar Vercel, dominio y producción.          |
@@ -34,7 +34,7 @@ Los informes anteriores son evidencia histórica; el estado vigente y los pendie
 
 ## Pendientes de integración
 
-- **CI:** el workflow remoto del commit `75ba309` falló en `npm ci` por discrepancias del lockfile. Se está validando la actualización local; el cierre requiere subirla y obtener un CI verde.
+- **CI:** la integración local pasó lint, tipos, 30 pruebas y build. Falta publicar la rama y obtener un workflow remoto verde.
 - **Pruebas funcionales:** las pruebas unitarias no sustituyen el recorrido manual completo como participante, jurado y organizador. Ver la [guía de aceptación](docs/PLAN_PRUEBAS_DP.md).
 - **Servicios reales:** confirmar callbacks OAuth, variables protegidas, base de datos, migraciones y buckets/políticas de Storage en el entorno destino. No sembrar datos de prueba en producción.
 - **Despliegue:** confirmar proyecto, dominio, rama de despliegue y variables de producción en Vercel; ejecutar un smoke test publicado antes de comunicar el lanzamiento.

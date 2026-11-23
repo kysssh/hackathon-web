@@ -188,5 +188,11 @@ npm run typecheck
 npm run lint
 ```
 
+Estado al 23 de noviembre de 2026: las cuatro migraciones versionadas fueron
+aplicadas a la base Supabase configurada. El resultado de `prisma migrate status`
+fue “Database schema is up to date”. No se volvió a ejecutar el seed sobre esa
+base. Las migraciones nuevas agregan el perfil de usuario y un índice compuesto
+para `project_files`.
+
 Consulta el [diccionario de datos](../docs/data-dictionary.md) para ver columnas,
 claves y relaciones, y [seed.ts](seed.ts) para los valores exactos de los fixtures.
