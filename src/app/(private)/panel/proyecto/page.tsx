@@ -3,7 +3,7 @@ import {
   DeadlineBanner,
 } from '@/components/private/submission-window';
 import { getMyProject } from '@/lib/project/queries';
-import { requireUser } from '@/lib/auth/session';
+import { requireUserWithProfile } from '@/lib/auth/session';
 
 import { DraftForm } from './draft-form';
 import { FileUploader } from './file-uploader';
@@ -12,7 +12,7 @@ import { SubmitPanel } from './submit-panel';
 export const dynamic = 'force-dynamic';
 
 export default async function ProyectoPage() {
-  const user = await requireUser();
+  const user = await requireUserWithProfile();
   const project = await getMyProject();
 
   // La URL del proyecto de Supabase y la llave *publicable* son públicas por

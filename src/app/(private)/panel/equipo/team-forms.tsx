@@ -215,10 +215,22 @@ export function TeamCard({ team }: { team: TeamDto }) {
         </span>
       </div>
 
-      <ul className="mt-4 divide-y divide-white/10" data-testid="team-members">
+      <h3 className="mt-6 text-sm font-semibold text-slate-300">Integrantes</h3>
+      <ul className="mt-2 divide-y divide-white/10" data-testid="team-members">
         {team.members.map((m) => (
-          <li key={m.userId} className="flex items-center gap-3 py-2">
-            <span>{m.name ?? 'Sin nombre'}</span>
+          <li
+            key={m.userId}
+            data-testid={`team-member-${m.userId}`}
+            className="flex flex-wrap items-center gap-x-3 gap-y-1 py-3"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="font-medium" data-testid="team-member-name">
+                {m.fullName}
+              </p>
+              <p className="text-sm text-slate-400" data-testid="team-member-university">
+                {m.university ?? 'Universidad no indicada'}
+              </p>
+            </div>
             {m.isLeader && <Badge tone="neutral">Líder</Badge>}
           </li>
         ))}

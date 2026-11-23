@@ -1,4 +1,5 @@
 import { LiveRefresh } from '@/components/private/live-refresh';
+import { ParticipantStats } from '@/components/private/participant-stats';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
@@ -12,7 +13,10 @@ import {
 import { eventConfig } from '@/config/event';
 import { formatEventDate } from '@/dates';
 import { requireRole } from '@/lib/auth/session';
-import { listTeamsForOrganizer } from '@/lib/team/queries';
+import {
+  getParticipantStatsForOrganizer,
+  listTeamsForOrganizer,
+} from '@/lib/team/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +32,10 @@ function MembersBadge({ count }: { count: number }) {
 
 export default async function OrganizacionEquiposPage() {
   await requireRole(['ORGANIZER']);
-  const teams = await listTeamsForOrganizer();
+  const [teams, stats] = await Promise.all([
+    listTeamsForOrganizer(),
+    getParticipantStatsForOrganizer(),
+  ]);
   const submitted = teams.filter((t) => t.submittedAt !== null).length;
 
   return (
@@ -49,6 +56,8 @@ export default async function OrganizacionEquiposPage() {
         )}
       </div>
 
+      <ParticipantStats stats={stats} />
+
       {teams.length === 0 ? (
         <div data-testid="org-teams-empty">
           <EmptyState
@@ -57,12 +66,13 @@ export default async function OrganizacionEquiposPage() {
           />
         </div>
       ) : (
-        <Table data-testid="org-teams-table" className="min-w-[44rem]">
+        <Table data-testid="org-teams-table" className="min-w-[60rem]">
           <TableHeader>
             <tr>
               <TableHead>Equipo</TableHead>
               <TableHead>Código</TableHead>
               <TableHead>Integrantes</TableHead>
+              <TableHead>Nombres y universidad</TableHead>
               <TableHead>Líder</TableHead>
               <TableHead>Proyecto</TableHead>
               <TableHead>Envío</TableHead>
@@ -77,8 +87,29 @@ export default async function OrganizacionEquiposPage() {
                     {t.joinCode}
                   </code>
                 </TableCell>
-                <TableCell>
+                <TableCell className="align-top">
                   <MembersBadge count={t.memberCount} />
+                </TableCell>
+                <TableCell className="align-top">
+                  <ul
+                    className="space-y-2"
+                    data-testid={`org-team-members-${t.teamId}`}
+                  >
+                    {t.members.map((m) => (
+                      <li key={m.userId}>
+                        <span className="font-medium">{m.fullName}</span>
+                        {m.isLeader && (
+                          <span className="text-xs text-purple-200"> · líder</span>
+                        )}
+                        <span className="block text-xs text-slate-400">
+                          {m.university ?? 'Universidad no indicada'}
+                        </span>
+                        <span className="block text-xs text-slate-500">
+                          {m.email}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </TableCell>
                 <TableCell className="text-slate-300">
                   {t.leaderEmail}

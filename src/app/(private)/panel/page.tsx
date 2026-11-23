@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { LiveRefresh } from '@/components/private/live-refresh';
 import { getMyTeam } from '@/lib/team/queries';
 import { getMyProject } from '@/lib/project/queries';
-import { requireUser } from '@/lib/auth/session';
+import { requireUserWithProfile } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +42,7 @@ function RoleHome({
 }
 
 export default async function PanelPage() {
-  const user = await requireUser();
+  const user = await requireUserWithProfile();
   const greeting = `Hola, ${user.name ?? user.email}`;
 
   if (user.role === 'JUDGE') {
@@ -134,8 +134,12 @@ export default async function PanelPage() {
           <ul className="mt-3 space-y-1">
             {team.members.map((m) => (
               <li key={m.userId}>
-                {m.name ?? 'Sin nombre'}
+                {m.fullName}
                 {m.isLeader ? ' (líder)' : ''}
+                <span className="text-sm text-slate-400">
+                  {' · '}
+                  {m.university ?? 'Universidad no indicada'}
+                </span>
               </li>
             ))}
           </ul>
