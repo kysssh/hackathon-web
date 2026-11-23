@@ -32,6 +32,9 @@ export const ERROR_MESSAGES: Record<string, string> = {
 
   // Evaluación
   EVALUATION_CLOSED: 'El período de calificación ya cerró.',
+
+  // Perfil
+  PROFILE_INCOMPLETE: 'Completá tus nombres, apellidos y universidad antes de continuar.',
 };
 
 /**

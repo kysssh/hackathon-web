@@ -4,10 +4,15 @@
  * "subir directamente desde el navegador, sin sobrescritura; los archivos no
  * viajan dentro de una Server Action").
  *
- * Es la misma petición que hace supabase-js en uploadToSignedUrl (PUT a
- * /storage/v1/object/upload/sign/<bucket>/<ruta>?token=...), pero con XHR para
- * poder mostrar el progreso y cancelar, y sin añadir una dependencia nueva
- * (BK también usa la API REST de Storage con fetch en el servidor).
+ * Es la misma petición que hace supabase-js en uploadToSignedUrl desde el
+ * navegador (PUT multipart a /storage/v1/object/upload/sign/<bucket>/<ruta>?token=...
+ * con los campos `cacheControl` y el archivo), pero con XHR para poder mostrar el
+ * progreso y cancelar, y sin añadir una dependencia nueva.
+ *
+ * Antes se enviaba el binario crudo con cabeceras `cache-control` y `content-type`
+ * propias: según la configuración CORS del proyecto, el preflight podía fallar y
+ * el navegador lo mostraba como "Se interrumpió la conexión". Con multipart solo
+ * viajan las cabeceras que usa el SDK oficial (apikey, authorization, x-upsert).
  */
 
 export type StorageConfig = { url: string; publishableKey: string };
@@ -78,10 +83,12 @@ export function uploadToSignedUrl(params: {
   storage: StorageConfig;
   signed: SignedUpload;
   file: File;
+  /** Tipo canónico (p. ej. application/zip aunque Windows diga x-zip-compressed). */
+  contentType: string;
   signal: AbortSignal;
   onProgress: (percent: number) => void;
 }): Promise<void> {
-  const { storage, signed, file, signal, onProgress } = params;
+  const { storage, signed, file, contentType, signal, onProgress } = params;
 
   return new Promise<void>((resolve, reject) => {
     if (signal.aborted) {
@@ -99,8 +106,7 @@ export function uploadToSignedUrl(params: {
       xhr.setRequestHeader('Authorization', `Bearer ${storage.publishableKey}`);
     }
     xhr.setRequestHeader('x-upsert', 'false'); // sin sobrescritura (contrato de BK)
-    xhr.setRequestHeader('cache-control', 'max-age=3600');
-    xhr.setRequestHeader('content-type', file.type);
+    // No se fija content-type: el navegador pone multipart/form-data con su boundary.
 
     const onAbort = () => xhr.abort();
     signal.addEventListener('abort', onAbort, { once: true });
@@ -149,6 +155,11 @@ export function uploadToSignedUrl(params: {
       reject(new UploadError('aborted', 'Subida cancelada.'));
     };
 
-    xhr.send(file);
+    // Storage toma el tipo del archivo desde la parte multipart: se re-etiqueta
+    // con el tipo canónico (no copia los datos, solo cambia la etiqueta).
+    const body = new FormData();
+    body.append('cacheControl', '3600');
+    body.append('', new Blob([file], { type: contentType }), file.name);
+    xhr.send(body);
   });
 }

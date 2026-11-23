@@ -12,6 +12,11 @@ import {
   createUploadUrlAction,
   deleteProjectFileAction,
 } from '@/lib/files/actions';
+import {
+  acceptAttribute,
+  resolveContentType,
+  safeFileName,
+} from '@/lib/files/mime';
 import type { ProjectDto } from '@/lib/queries/dtos';
 
 import {
@@ -137,7 +142,7 @@ export function FileUploader({
   const busy = phase !== 'idle';
 
   function validate(file: File): string | null {
-    if (!allowedTypes.includes(file.type)) {
+    if (!allowedTypes.includes(resolveContentType(file.name, file.type))) {
       return `Tipo de archivo no permitido. Se acepta: ${allowedTypes.join(', ')}.`;
     }
     if (file.size > limits.maxBytes) {
@@ -170,8 +175,8 @@ export function FileUploader({
 
     const meta = {
       kind,
-      fileName: file.name,
-      contentType: file.type,
+      fileName: safeFileName(file.name),
+      contentType: resolveContentType(file.name, file.type),
       sizeBytes: file.size,
     };
 
@@ -208,6 +213,7 @@ export function FileUploader({
           storage,
           signed: attempt.signed,
           file,
+          contentType: meta.contentType,
           signal: controller.signal,
           onProgress: setProgress,
         });
@@ -290,7 +296,7 @@ export function FileUploader({
             type="file"
             data-testid={`uploader-${slug}-input`}
             aria-label={`Elegir ${KIND_LABEL[kind].toLowerCase()}`}
-            accept={allowedTypes.join(',')}
+            accept={acceptAttribute(allowedTypes)}
             disabled={busy}
             onChange={handleFileChange}
             className="text-sm disabled:opacity-50"

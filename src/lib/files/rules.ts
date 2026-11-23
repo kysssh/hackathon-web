@@ -2,6 +2,8 @@
 import { eventConfig, type ProjectFileKind } from '@/config/event';
 import { ActionError } from '@/errors';
 
+import { normalizeContentType } from './mime';
+
 export type UploadRequest = {
   kind: ProjectFileKind;
   fileName: string;
@@ -14,7 +16,8 @@ export function validateFile(
 ): void {
   const limit = eventConfig.files.limits[input.kind];
   if (input.sizeBytes > limit.maxBytes) throw new ActionError('FILE_TOO_LARGE');
-  if (!(limit.contentTypes as readonly string[]).includes(input.contentType))
+  const contentType = normalizeContentType(input.contentType);
+  if (!(limit.contentTypes as readonly string[]).includes(contentType))
     throw new ActionError('FILE_TYPE_NOT_ALLOWED');
   if (!Number.isSafeInteger(input.sizeBytes) || input.sizeBytes <= 0)
     throw new ActionError('VALIDATION_ERROR');
