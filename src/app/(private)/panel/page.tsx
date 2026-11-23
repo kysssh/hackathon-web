@@ -88,19 +88,19 @@ export default async function PanelPage() {
       id: 'draft',
       label: 'Guardar el borrador del proyecto',
       done: project !== null,
-      href: '/panel/proyecto',
+      href: '/panel/proyecto?section=details',
     },
     {
       id: 'pitch',
       label: 'Subir el pitch deck',
       done: project?.files.some((f) => f.kind === 'PITCH_DECK') ?? false,
-      href: '/panel/proyecto',
+      href: '/panel/proyecto?section=pitch',
     },
     {
       id: 'submit',
       label: 'Enviar el proyecto',
       done: project?.submittedAt != null,
-      href: '/panel/proyecto',
+      href: '/panel/proyecto?section=submit',
     },
   ];
 
@@ -126,10 +126,16 @@ export default async function PanelPage() {
         <div className="info-panel mt-4 p-6" data-testid="panel-team-summary">
           <p className="font-medium">{team.name}</p>
           <p className="mt-1 text-sm text-slate-400">
-            Código:{' '}
-            <code className="rounded bg-white/10 px-2 py-0.5">
-              {team.joinCode}
-            </code>
+            {team.joinCode ? (
+              <>
+                Código:{' '}
+                <code className="rounded bg-white/10 px-2 py-0.5">
+                  {team.joinCode}
+                </code>
+              </>
+            ) : (
+              'El código de invitación solo lo puede consultar el líder.'
+            )}
           </p>
           <ul className="mt-3 space-y-1">
             {team.members.map((m) => (

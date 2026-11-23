@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 import { useAction } from '@/components/private/hooks/use-action';
+import { Button } from '@/components/ui/button';
 import { useSubmissionWindow } from '@/components/private/submission-window';
 import { eventConfig, type ProjectFileKind } from '@/config/event';
 import { getErrorMessage } from '@/error-messages';
@@ -33,9 +35,23 @@ const KIND_LABEL: Record<ProjectFileKind, string> = {
 };
 
 const KIND_HINT: Record<ProjectFileKind, string> = {
-  PITCH_DECK: 'Obligatorio para enviar el proyecto.',
-  COVER_IMAGE: 'Se muestra en la galería pública.',
-  EXTRA: 'Material de apoyo opcional.',
+  PITCH_DECK:
+    'Presentación del proyecto: explica el problema, la solución y cómo funciona. Es obligatorio para enviar.',
+  COVER_IMAGE:
+    'Imagen principal que representará el proyecto en la galería pública.',
+  EXTRA: 'Documentos de apoyo opcionales para complementar el proyecto.',
+};
+
+const KIND_FORMATS: Record<ProjectFileKind, string> = {
+  PITCH_DECK: 'PDF',
+  COVER_IMAGE: 'PNG, JPG o WEBP',
+  EXTRA: 'PDF, ZIP, PNG o JPG',
+};
+
+const KIND_BUTTON: Record<ProjectFileKind, string> = {
+  PITCH_DECK: 'Seleccionar pitch deck (PDF)',
+  COVER_IMAGE: 'Seleccionar imagen de portada',
+  EXTRA: 'Agregar archivo de apoyo',
 };
 
 type Phase = 'idle' | 'authorizing' | 'uploading' | 'confirming';
@@ -133,6 +149,7 @@ export function FileUploader({
   const [failure, setFailure] = useState<Failure | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const attemptRef = useRef<Attempt | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -273,7 +290,7 @@ export function FileUploader({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-medium">{KIND_LABEL[kind]}</span>
         <span className="text-xs text-slate-400">
-          Máx. {formatMB(limits.maxBytes)} · {allowedTypes.join(', ')}
+          {KIND_FORMATS[kind]} · máximo {formatMB(limits.maxBytes)}
         </span>
       </div>
       <p className="mt-1 text-xs text-slate-400">
@@ -291,16 +308,28 @@ export function FileUploader({
       )}
 
       {canAdd && !failure && (
-        <div className="mt-3">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <input
+            ref={fileInputRef}
             type="file"
             data-testid={`uploader-${slug}-input`}
             aria-label={`Elegir ${KIND_LABEL[kind].toLowerCase()}`}
             accept={acceptAttribute(allowedTypes)}
             disabled={busy}
             onChange={handleFileChange}
-            className="text-sm disabled:opacity-50"
+            className="hidden"
           />
+          <Button
+            type="button"
+            data-testid={`uploader-${slug}-choose`}
+            disabled={busy}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {KIND_BUTTON[kind]}
+          </Button>
+          <span className="text-xs text-slate-400">
+            La subida comienza al seleccionar el archivo.
+          </span>
         </div>
       )}
 
@@ -310,6 +339,12 @@ export function FileUploader({
           className="mt-3 text-xs text-slate-400"
         >
           Guarda el borrador del proyecto para poder subir archivos.
+          <Link
+            href="/panel/proyecto?section=details"
+            className="ml-1 text-link"
+          >
+            Completar los datos del proyecto
+          </Link>
         </p>
       )}
       {closed && (

@@ -41,12 +41,15 @@ export async function getMyTeam(): Promise<TeamDto | null> {
 
   if (!membership) return null;
 
-  return toTeamDto(membership.team);
+  return toTeamDto(membership.team, currentUser.id);
 }
 
 export async function listTeamsForOrganizer(): Promise<OrganizerTeamRowDto[]> {
   const teams = await db.team.findMany({
-    include: {
+    select: {
+      id: true,
+      name: true,
+      leaderId: true,
       leader: { select: { email: true } },
       project: { select: { title: true, submittedAt: true } },
       members: {
@@ -60,7 +63,6 @@ export async function listTeamsForOrganizer(): Promise<OrganizerTeamRowDto[]> {
   return teams.map((team) => ({
     teamId: team.id,
     name: team.name,
-    joinCode: team.joinCode,
     memberCount: team.members.length,
     leaderEmail: team.leader.email,
     members: team.members.map((member) => ({
@@ -118,13 +120,13 @@ function toTeamDto(team: {
       image: string | null;
     };
   }[];
-}): TeamDto {
+}, currentUserId: string): TeamDto {
   const memberCount = team.members.length;
 
   return {
     id: team.id,
     name: team.name,
-    joinCode: team.joinCode,
+    joinCode: team.leaderId === currentUserId ? team.joinCode : null,
     members: team.members.map((member) => ({
       userId: member.userId,
       name: member.user.name,
