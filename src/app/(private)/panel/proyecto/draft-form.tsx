@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/toast';
 import type { ProjectDto } from '@/lib/queries/dtos';
-import { isValidDriveUrl, isValidDomainUrl, type EventPhase } from '@/lib/project/rules';
+import { isValidDriveUrl, isValidDomainUrl, isValidGitHubUrl, type EventPhase } from '@/lib/project/rules';
 import { saveProjectDraftAction } from '@/lib/project/actions';
 
 import { describeMissingFields } from './field-labels';
@@ -36,15 +36,12 @@ type FormState = {
   videoUrl: string;
 };
 
-const COMMON_URL_FIELDS = [
+const OPTIONAL_URL_FIELDS = [
   {
     field: 'repositoryUrl',
-    label: 'Repositorio',
-    hint: 'Enlace al código fuente, por ejemplo, en GitHub.',
+    label: 'Repositorio de GitHub',
+    hint: 'Enlace al código fuente. Obligatorio en semifinal.',
   },
-] as const;
-
-const OPTIONAL_URL_FIELDS = [
   {
     field: 'demoUrl',
     label: 'Dominio del proyecto',
@@ -99,12 +96,12 @@ export function DraftForm({
 
   const visibleUrlFields =
     activePhase === 'PHASE_1'
-      ? COMMON_URL_FIELDS
+      ? []
       : activePhase === 'PHASE_2'
-        ? [...COMMON_URL_FIELDS, OPTIONAL_URL_FIELDS[1]]
+        ? [OPTIONAL_URL_FIELDS[2]]
         : activePhase === 'SEMIFINAL'
-          ? [...COMMON_URL_FIELDS, OPTIONAL_URL_FIELDS[0]]
-          : COMMON_URL_FIELDS;
+          ? [OPTIONAL_URL_FIELDS[0], OPTIONAL_URL_FIELDS[1]]
+          : [];
 
   // Validación local, antes de tocar al servidor. No repite los códigos de BK,
   // solo evita el viaje de red cuando el problema ya se ve en el navegador.
@@ -133,7 +130,10 @@ export function DraftForm({
     }
 
     for (const { field } of visibleUrlFields) {
-      if (field === 'videoUrl' && activePhase === 'PHASE_2') {
+      if (field === 'repositoryUrl' && activePhase === 'SEMIFINAL') {
+        if (!isValidGitHubUrl(form.repositoryUrl))
+          next.repositoryUrl = 'Ingresa un enlace válido de GitHub.';
+      } else if (field === 'videoUrl' && activePhase === 'PHASE_2') {
         if (!isValidDriveUrl(form.videoUrl))
           next.videoUrl = 'Ingresa un enlace válido de Google Drive.';
       } else if (field === 'demoUrl' && activePhase === 'SEMIFINAL') {

@@ -8,6 +8,7 @@ export const MISSING_FIELD_LABELS: Record<string, string> = {
   coverImage: 'Portada',
   driveUrl: 'Link de Google Drive del video',
   domainUrl: 'Link del dominio desplegado',
+  githubUrl: 'Link del repositorio de GitHub',
 };
 
 export function describeMissingFields(fields: string[]): string {

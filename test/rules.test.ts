@@ -16,6 +16,7 @@ import {
   getEventPhase,
   getSubmissionWindow,
   isValidDriveUrl,
+  isValidGitHubUrl,
   slugify,
 } from '@/lib/project/rules';
 import {
@@ -94,6 +95,34 @@ describe('Reglas del Proyecto (Project Rules)', () => {
   it('valida enlaces de Drive de Google', () => {
     assert.equal(isValidDriveUrl('https://drive.google.com/file/d/demo/view'), true);
     assert.equal(isValidDriveUrl('https://example.com/video'), false);
+  });
+
+  it('exige GitHub solo en semifinal', () => {
+    assert.equal(isValidGitHubUrl('https://github.com/equipo/proyecto'), true);
+    assert.equal(isValidGitHubUrl('https://example.com/proyecto'), false);
+
+    const phaseOneMissing = computeMissingFields({
+      title: 'Proyecto',
+      summary: 'Resumen',
+      description: 'Descripción',
+      phase: 'PHASE_1',
+      repositoryUrl: null,
+      hasWordDocument: true,
+      hasCoverImage: true,
+    });
+    assert.equal(phaseOneMissing.includes('githubUrl'), false);
+
+    const semifinalMissing = computeMissingFields({
+      title: 'Proyecto',
+      summary: 'Resumen',
+      description: 'Descripción',
+      phase: 'SEMIFINAL',
+      repositoryUrl: null,
+      demoUrl: 'https://demo.example.com',
+      hasUpdatedPitchDeck: true,
+      hasUpdatedCoverImage: true,
+    });
+    assert.deepEqual(semifinalMissing, ['githubUrl']);
   });
 
   it('convierte nombres a slugs limpios para la URL de galería', () => {
