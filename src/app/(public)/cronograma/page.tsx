@@ -19,10 +19,12 @@ export const metadata: Metadata = {
 export default function CronogramaPage() {
   const dates = [
     ['Anuncio oficial e inscripciones', eventConfig.dates.registrationOpensAt],
-    ['Kickoff e inauguración (cierre de registro)', eventConfig.dates.registrationClosesAt],
+    ['Kickoff e inauguración (cierre de registro)', eventConfig.dates.kickoffAt],
     ['Apertura de entregables', eventConfig.dates.submissionOpensAt],
-    ['Cierre del segundo entregable', eventConfig.dates.submissionClosesAt],
-    ['Demo Day y evaluación final', eventConfig.dates.evaluationClosesAt],
+    ['Primer entregable (pasan 15 equipos)', eventConfig.dates.firstSubmissionClosesAt],
+    ['Segundo entregable (pasan 10 equipos)', eventConfig.dates.submissionClosesAt],
+    ['Semifinal virtual (5 finalistas)', eventConfig.dates.semifinalAt],
+    ['Demo Day y gran final', eventConfig.dates.evaluationClosesAt],
   ] as const;
 
   return (
