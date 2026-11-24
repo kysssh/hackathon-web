@@ -9,7 +9,7 @@ const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-grotesk', 
 
 export const metadata: Metadata = {
   title: { default: 'Hackathon 2026 | Núcleo Centro Cultural', template: '%s | Hackathon Núcleo 2026' },
-  description: 'Cuatro semanas para crear proyectos que conectan cultura, comunidad y tecnología.',
+  description: 'Hackathon cultural del 5 al 12 de diciembre para crear proyectos que conectan cultura, comunidad y tecnología.',
   openGraph: { title: 'Hackathon Núcleo Centro Cultural 2026', description: 'Crea el futuro de la cultura y la tecnología.', locale: 'es_PE', type: 'website' },
 };
 
