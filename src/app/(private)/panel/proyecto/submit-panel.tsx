@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
 import { formatEventDate } from '@/dates';
+import { eventConfig } from '@/config/event';
 import { submitProjectAction } from '@/lib/project/actions';
 import type { ProjectDto } from '@/lib/queries/dtos';
 
@@ -34,7 +35,16 @@ export function SubmitPanel({
   const { status, remainingMs, opensAt } = useSubmissionWindow(
     project.submissionWindow
   );
-  const alreadySubmitted = project.submittedAt != null;
+  const phaseSubmissionStart = {
+    PHASE_1: eventConfig.dates.submissionOpensAt,
+    PHASE_2: eventConfig.dates.phaseOneClosesAt,
+    SEMIFINAL: eventConfig.dates.phaseTwoClosesAt,
+    FINAL: null,
+  }[project.activePhase];
+  const alreadySubmitted =
+    project.submittedAt != null &&
+    phaseSubmissionStart != null &&
+    Date.parse(project.submittedAt) >= Date.parse(phaseSubmissionStart);
   const missing = project.missingFields;
 
   // Un integrante que no es líder nunca ve el botón de enviar, no solo deshabilitado.

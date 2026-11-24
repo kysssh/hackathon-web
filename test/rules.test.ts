@@ -172,7 +172,7 @@ describe('Reglas de Archivos (File Rules)', () => {
     assert.equal(bucketForKind('EXTRA'), 'entregables');
   });
 
-  it('rechaza pitch deck si no es PDF', () => {
+  it('rechaza tipos de archivo no permitidos para la presentación', () => {
     assert.throws(
       () =>
         validateFile({

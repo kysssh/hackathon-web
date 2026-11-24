@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
 
 const KIND_LABEL: Record<ProjectFileKind, string> = {
   WORD_DOCUMENT: 'Documento Word',
-  PITCH_DECK: 'Pitch deck',
+  PITCH_DECK: 'Presentación',
   COVER_IMAGE: 'Portada',
   EXTRA: 'Extra',
 };

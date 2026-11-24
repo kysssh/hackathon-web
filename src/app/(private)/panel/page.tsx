@@ -4,6 +4,9 @@ import { LiveRefresh } from '@/components/private/live-refresh';
 import { getMyTeam } from '@/lib/team/queries';
 import { getMyProject } from '@/lib/project/queries';
 import { requireUserWithProfile } from '@/lib/auth/session';
+import { getEventPhase } from '@/lib/project/rules';
+import { serverNow } from '@/clock';
+import { eventConfig } from '@/config/event';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,6 +73,35 @@ export default async function PanelPage() {
   }
 
   const [team, project] = await Promise.all([getMyTeam(), getMyProject()]);
+  const activePhase = project?.activePhase ?? getEventPhase(serverNow());
+  const phaseSubmissionStart = {
+    PHASE_1: new Date(eventConfig.dates.submissionOpensAt),
+    PHASE_2: new Date(eventConfig.dates.phaseOneClosesAt),
+    SEMIFINAL: new Date(eventConfig.dates.phaseTwoClosesAt),
+    FINAL: null,
+  }[activePhase];
+  const submittedThisPhase =
+    project?.submittedAt != null &&
+    phaseSubmissionStart != null &&
+    Date.parse(project.submittedAt) >= phaseSubmissionStart.getTime();
+  const phaseRequirements = {
+    PHASE_1: [
+      { field: 'wordDocument', id: 'word', label: 'Subir el documento Word', href: '/panel/proyecto?section=word' },
+      { field: 'coverImage', id: 'cover', label: 'Subir la portada', href: '/panel/proyecto?section=cover' },
+    ],
+    PHASE_2: [
+      { field: 'pitchDeck', id: 'presentation', label: 'Subir la presentación de la fase 2', href: '/panel/proyecto?section=pitch' },
+      { field: 'coverImage', id: 'cover', label: 'Actualizar la portada', href: '/panel/proyecto?section=cover' },
+      { field: 'driveUrl', id: 'video', label: 'Agregar el enlace del video en Drive', href: '/panel/proyecto?section=details' },
+    ],
+    SEMIFINAL: [
+      { field: 'pitchDeck', id: 'presentation', label: 'Actualizar la presentación para semifinal', href: '/panel/proyecto?section=pitch' },
+      { field: 'coverImage', id: 'cover', label: 'Actualizar la portada para semifinal', href: '/panel/proyecto?section=cover' },
+      { field: 'domainUrl', id: 'domain', label: 'Agregar el enlace del dominio desplegado', href: '/panel/proyecto?section=details' },
+      { field: 'githubUrl', id: 'github', label: 'Agregar el enlace del repositorio de GitHub', href: '/panel/proyecto?section=details' },
+    ],
+    FINAL: [],
+  } as const;
 
   const pending: PendingItem[] = [
     {
@@ -90,18 +122,20 @@ export default async function PanelPage() {
       done: project !== null,
       href: '/panel/proyecto?section=details',
     },
-    {
-      id: 'pitch',
-      label: 'Subir el pitch deck',
-      done: project?.files.some((f) => f.kind === 'PITCH_DECK') ?? false,
-      href: '/panel/proyecto?section=pitch',
-    },
-    {
-      id: 'submit',
-      label: 'Enviar el proyecto',
-      done: project?.submittedAt != null,
-      href: '/panel/proyecto?section=submit',
-    },
+    ...phaseRequirements[activePhase].map((requirement) => ({
+      id: requirement.id,
+      label: requirement.label,
+      done: project !== null && !project.missingFields.includes(requirement.field),
+      href: requirement.href,
+    })),
+    ...(activePhase === 'FINAL'
+      ? []
+      : [{
+          id: 'submit',
+          label: `Enviar la entrega de ${activePhase === 'PHASE_1' ? 'la fase 1' : activePhase === 'PHASE_2' ? 'la fase 2' : 'semifinal'}`,
+          done: submittedThisPhase,
+          href: '/panel/proyecto?section=submit',
+        }]),
   ];
 
   return (

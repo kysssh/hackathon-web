@@ -44,10 +44,13 @@ export default function TerminosPage() {
           </h2>
           <p className="mt-3">
             Envía contenido relacionado con el evento y que tengas derecho a
-            compartir. El pitch deck en PDF es obligatorio. La portada acepta
-            imágenes PNG, JPG o WEBP; los archivos extra pueden ser PDF, ZIP o
-            imágenes permitidas por la plataforma. Los límites de tamaño y
-            cantidad se indican junto a cada sección de carga.
+            compartir. Los archivos requeridos dependen de la fase: documento
+            Word y portada en la primera; presentación, portada actualizada y
+            enlace del video en Drive en la segunda; y presentación y portada
+            actualizadas, dominio desplegado y repositorio de GitHub en
+            semifinal. Las presentaciones aceptan PDF, PPT o PPTX; el Word
+            acepta DOC o DOCX. La portada acepta PNG, JPG o WEBP. Los archivos
+            extra son opcionales; los límites se indican junto a cada sección.
           </p>
           <p className="mt-3">
             Solo el líder puede enviar el proyecto. El envío debe completarse
