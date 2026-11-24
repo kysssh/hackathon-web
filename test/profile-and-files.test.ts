@@ -94,6 +94,15 @@ describe('Tipos de archivo (subida)', () => {
     );
   });
 
+  it('acepta documentos Word y presentaciones por extensión', () => {
+    assert.doesNotThrow(() =>
+      validateFile({ kind: 'WORD_DOCUMENT', contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', sizeBytes: 1024 })
+    );
+    assert.doesNotThrow(() =>
+      validateFile({ kind: 'PITCH_DECK', contentType: 'application/vnd.ms-powerpoint', sizeBytes: 1024 })
+    );
+  });
+
   it('sigue rechazando tipos no permitidos', () => {
     assert.throws(
       () => validateFile({ kind: 'PITCH_DECK', contentType: 'application/zip', sizeBytes: 1024 }),

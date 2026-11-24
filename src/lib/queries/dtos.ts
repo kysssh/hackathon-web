@@ -21,7 +21,8 @@ export type ProjectDto = {
   coverUrl: string | null;
   submittedAt: string | null;
   submissionCount: number;
-  files: { id: string; kind: "PITCH_DECK" | "EXTRA" | "COVER_IMAGE"; originalName: string; sizeBytes: number; uploadedAt: string }[];
+  activePhase: "PHASE_1" | "PHASE_2" | "SEMIFINAL" | "FINAL";
+  files: { id: string; kind: "PITCH_DECK" | "EXTRA" | "COVER_IMAGE" | "WORD_DOCUMENT"; originalName: string; sizeBytes: number; uploadedAt: string }[];
   missingFields: string[];
   submissionWindow: { status: "NOT_OPEN" | "OPEN" | "CLOSED"; opensAt: string; closesAt: string; serverNow: string };
 };

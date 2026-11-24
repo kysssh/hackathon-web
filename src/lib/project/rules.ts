@@ -7,6 +7,39 @@ import { eventConfig } from '@/config/event';
 
 const { submissionOpensAt, submissionClosesAt } = eventConfig.dates;
 
+export type EventPhase = 'PHASE_1' | 'PHASE_2' | 'SEMIFINAL' | 'FINAL';
+
+export function getEventPhase(nowIso: string): EventPhase {
+  const now = Date.parse(nowIso);
+  if (now <= Date.parse(eventConfig.dates.phaseOneClosesAt)) return 'PHASE_1';
+  if (now <= Date.parse(eventConfig.dates.phaseTwoClosesAt)) return 'PHASE_2';
+  if (now <= Date.parse(eventConfig.dates.semifinalAt)) return 'SEMIFINAL';
+  return 'FINAL';
+}
+
+export function isValidDriveUrl(value: string | null | undefined): boolean {
+  if (!value?.trim()) return false;
+  try {
+    const url = new URL(value);
+    return (
+      (url.protocol === 'https:' || url.protocol === 'http:') &&
+      (url.hostname === 'drive.google.com' || url.hostname.endsWith('.googleusercontent.com'))
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function isValidDomainUrl(value: string | null | undefined): boolean {
+  if (!value?.trim()) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Qué le falta al proyecto para poder enviarse. Son nombres del contrato (ProjectDto.missingFields):
  * 'title' · 'summary' · 'description' · 'pitchDeck'
@@ -15,13 +48,35 @@ export function computeMissingFields(project: {
   title: string;
   summary: string;
   description: string;
-  hasPitchDeck: boolean;
+  videoUrl?: string | null;
+  demoUrl?: string | null;
+  hasWordDocument?: boolean;
+  hasPitchDeck?: boolean;
+  hasCoverImage?: boolean;
+  hasUpdatedPitchDeck?: boolean;
+  hasUpdatedCoverImage?: boolean;
+  phase?: EventPhase;
 }): string[] {
   const missing: string[] = [];
   if (!project.title.trim()) missing.push('title');
   if (!project.summary.trim()) missing.push('summary');
   if (!project.description.trim()) missing.push('description');
-  if (!project.hasPitchDeck) missing.push('pitchDeck');
+  const phase = project.phase ?? getEventPhase(new Date().toISOString());
+
+  if (phase === 'PHASE_1') {
+    if (!project.hasWordDocument) missing.push('wordDocument');
+    if (!project.hasCoverImage) missing.push('coverImage');
+  }
+  if (phase === 'PHASE_2') {
+    if (!project.hasUpdatedPitchDeck) missing.push('pitchDeck');
+    if (!project.hasUpdatedCoverImage) missing.push('coverImage');
+    if (!isValidDriveUrl(project.videoUrl)) missing.push('driveUrl');
+  }
+  if (phase === 'SEMIFINAL') {
+    if (!project.hasUpdatedPitchDeck) missing.push('pitchDeck');
+    if (!project.hasUpdatedCoverImage) missing.push('coverImage');
+    if (!isValidDomainUrl(project.demoUrl)) missing.push('domainUrl');
+  }
   return missing;
 }
 

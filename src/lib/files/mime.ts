@@ -20,6 +20,10 @@ const ALIASES: Record<string, string> = {
   'image/x-png': 'image/png',
   'application/x-pdf': 'application/pdf',
   'application/acrobat': 'application/pdf',
+  'application/vnd.ms-powerpoint': 'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/msword': 'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 };
 
 const BY_EXTENSION: Record<string, string> = {
@@ -30,6 +34,10 @@ const BY_EXTENSION: Record<string, string> = {
   jpeg: 'image/jpeg',
   jfif: 'image/jpeg',
   webp: 'image/webp',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 };
 
 /** "Image/JPG; charset=x" → "image/jpeg". Devuelve "" si no hay tipo. */

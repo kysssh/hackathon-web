@@ -10,7 +10,7 @@ import { ActionError } from '@/errors';
 import { db } from '@/lib/db';
 import { isUniqueViolation } from '@/lib/prisma-errors';
 
-import { computeMissingFields, getSubmissionWindow, slugify } from './rules';
+import { computeMissingFields, getEventPhase, getSubmissionWindow, slugify } from './rules';
 
 const MAX_SAVE_ATTEMPTS = 3;
 
@@ -111,14 +111,39 @@ export const saveProjectDraftAction = createAction(
             });
             projectId = created.id;
           }
-          const pitchDecks = await tx.projectFile.count({
-            where: { projectId, kind: 'PITCH_DECK' },
+          const nowIso = serverNow();
+          const phase = getEventPhase(nowIso);
+          const files = await tx.projectFile.findMany({
+            where: { projectId },
+            select: { kind: true, createdAt: true },
           });
+          const phaseTwoStartsAt = new Date(eventConfig.dates.phaseOneClosesAt);
+          const semifinalStartsAt = new Date(eventConfig.dates.phaseTwoClosesAt);
+          const pitchDeck = files.find((file) => file.kind === 'PITCH_DECK');
+          const coverImage = files.find((file) => file.kind === 'COVER_IMAGE');
+          const wordDocument = files.find((file) => file.kind === 'WORD_DOCUMENT');
+          const updatedStart =
+            phase === 'PHASE_2'
+              ? phaseTwoStartsAt
+              : phase === 'SEMIFINAL'
+                ? semifinalStartsAt
+                : null;
+          const hasUpdatedPitchDeck = Boolean(
+            pitchDeck && updatedStart && pitchDeck.createdAt >= updatedStart
+          );
+          const hasUpdatedCoverImage = Boolean(
+            coverImage && updatedStart && coverImage.createdAt >= updatedStart
+          );
           return {
             projectId,
             missingFields: computeMissingFields({
               ...fields,
-              hasPitchDeck: pitchDecks > 0,
+              phase,
+              hasWordDocument: Boolean(wordDocument),
+              hasPitchDeck: Boolean(pitchDeck),
+              hasCoverImage: Boolean(coverImage),
+              hasUpdatedPitchDeck,
+              hasUpdatedCoverImage,
             }),
           };
         });
@@ -168,12 +193,34 @@ export const submitProjectAction = createAction(
         throw new ActionError('SUBMISSION_CLOSED');
       const current = await tx.project.findUniqueOrThrow({
         where: { id: project.id },
-        include: { files: { where: { kind: 'PITCH_DECK' } } },
+        include: { files: true },
       });
+      const nowIso = serverNow();
+      const phase = getEventPhase(nowIso);
+      const pitchDeck = current.files.find((file) => file.kind === 'PITCH_DECK');
+      const coverImage = current.files.find((file) => file.kind === 'COVER_IMAGE');
+      const wordDocument = current.files.find((file) => file.kind === 'WORD_DOCUMENT');
+      const updatedStart =
+        phase === 'PHASE_2'
+          ? new Date(eventConfig.dates.phaseOneClosesAt)
+          : phase === 'SEMIFINAL'
+            ? new Date(eventConfig.dates.phaseTwoClosesAt)
+            : null;
+      const hasUpdatedPitchDeck = Boolean(
+        pitchDeck && updatedStart && pitchDeck.createdAt >= updatedStart
+      );
+      const hasUpdatedCoverImage = Boolean(
+        coverImage && updatedStart && coverImage.createdAt >= updatedStart
+      );
       if (
         computeMissingFields({
           ...current,
-          hasPitchDeck: current.files.length > 0,
+          phase,
+          hasWordDocument: Boolean(wordDocument),
+          hasPitchDeck: Boolean(pitchDeck),
+          hasCoverImage: Boolean(coverImage),
+          hasUpdatedPitchDeck,
+          hasUpdatedCoverImage,
         }).length
       )
         throw new ActionError('PROJECT_INCOMPLETE');

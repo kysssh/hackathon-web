@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/toast';
 import type { ProjectDto } from '@/lib/queries/dtos';
+import { isValidDriveUrl, isValidDomainUrl, type EventPhase } from '@/lib/project/rules';
 import { saveProjectDraftAction } from '@/lib/project/actions';
 
 import { describeMissingFields } from './field-labels';
@@ -35,21 +36,24 @@ type FormState = {
   videoUrl: string;
 };
 
-const URL_FIELDS = [
+const COMMON_URL_FIELDS = [
   {
     field: 'repositoryUrl',
     label: 'Repositorio',
     hint: 'Enlace al código fuente, por ejemplo, en GitHub.',
   },
+] as const;
+
+const OPTIONAL_URL_FIELDS = [
   {
     field: 'demoUrl',
-    label: 'Demo',
-    hint: 'Enlace a una versión funcional o demostración del proyecto.',
+    label: 'Dominio del proyecto',
+    hint: 'Enlace al despliegue vigente del proyecto. Obligatorio en semifinal.',
   },
   {
     field: 'videoUrl',
-    label: 'Video',
-    hint: 'Pega un enlace al video; aquí no se sube el archivo de video.',
+    label: 'Video en Drive',
+    hint: 'Enlace de Google Drive donde está el video. Obligatorio en la segunda fase.',
   },
 ] as const;
 
@@ -66,7 +70,13 @@ function isValidOptionalUrl(value: string) {
   }
 }
 
-export function DraftForm({ project }: { project: ProjectDto | null }) {
+export function DraftForm({
+  project,
+  activePhase,
+}: {
+  project: ProjectDto | null;
+  activePhase: EventPhase;
+}) {
   const router = useRouter();
   const { showToast } = useToast();
   const { run, pending, error, fieldErrors } = useAction(
@@ -86,6 +96,15 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
     demoUrl: project?.demoUrl ?? '',
     videoUrl: project?.videoUrl ?? '',
   });
+
+  const visibleUrlFields =
+    activePhase === 'PHASE_1'
+      ? COMMON_URL_FIELDS
+      : activePhase === 'PHASE_2'
+        ? [...COMMON_URL_FIELDS, OPTIONAL_URL_FIELDS[1]]
+        : activePhase === 'SEMIFINAL'
+          ? [...COMMON_URL_FIELDS, OPTIONAL_URL_FIELDS[0]]
+          : COMMON_URL_FIELDS;
 
   // Validación local, antes de tocar al servidor. No repite los códigos de BK,
   // solo evita el viaje de red cuando el problema ya se ve en el navegador.
@@ -113,9 +132,16 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
       next.description = `La descripción supera el máximo de ${LIMITS.description} caracteres.`;
     }
 
-    for (const { field } of URL_FIELDS) {
-      if (!isValidOptionalUrl(form[field]))
+    for (const { field } of visibleUrlFields) {
+      if (field === 'videoUrl' && activePhase === 'PHASE_2') {
+        if (!isValidDriveUrl(form.videoUrl))
+          next.videoUrl = 'Ingresa un enlace válido de Google Drive.';
+      } else if (field === 'demoUrl' && activePhase === 'SEMIFINAL') {
+        if (!isValidDomainUrl(form.demoUrl))
+          next.demoUrl = 'Ingresa el enlace válido del dominio desplegado.';
+      } else if (!isValidOptionalUrl(form[field])) {
         next[field] = 'Ingresa una URL válida.';
+      }
     }
 
     setLocalErrors(next);
@@ -203,7 +229,7 @@ export function DraftForm({ project }: { project: ProjectDto | null }) {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        {URL_FIELDS.map(({ field, label, hint }) => (
+        {visibleUrlFields.map(({ field, label, hint }) => (
           <Input
             key={field}
             id={field}

@@ -22,8 +22,11 @@ export const eventConfig = {
     submissionOpensAt: '2026-12-05T00:00:00-05:00',
     /** 6 de diciembre: Primer entregable y selección de 15 equipos. */
     firstSubmissionClosesAt: '2026-12-06T23:59:00-05:00',
+    /** 6 de diciembre: cierre de la primera fase de entregables. */
+    phaseOneClosesAt: '2026-12-06T23:59:00-05:00',
     /** 8 de diciembre: Segundo entregable y selección de 10 equipos. */
-    submissionClosesAt: '2026-12-08T23:59:00-05:00',
+    phaseTwoClosesAt: '2026-12-08T23:59:00-05:00',
+    submissionClosesAt: '2026-12-12T23:59:00-05:00',
     /** 10 de diciembre: Semifinal virtual y selección de 5 equipos finalistas. */
     semifinalAt: '2026-12-10T23:59:00-05:00',
     /** 12 de diciembre: Demo Day y gran final. */
@@ -41,9 +44,20 @@ export const eventConfig = {
     /** Máximo de archivos EXTRA por proyecto. */
     maxExtraFiles: 5,
     limits: {
+      WORD_DOCUMENT: {
+        maxBytes: 25 * MB,
+        contentTypes: [
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+      },
       PITCH_DECK: {
         maxBytes: 25 * MB,
-        contentTypes: ['application/pdf'],
+        contentTypes: [
+          'application/pdf',
+          'application/vnd.ms-powerpoint',
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        ],
       },
       COVER_IMAGE: {
         maxBytes: 5 * MB,

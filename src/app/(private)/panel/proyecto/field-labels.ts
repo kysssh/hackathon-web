@@ -4,6 +4,10 @@ export const MISSING_FIELD_LABELS: Record<string, string> = {
   summary: 'Resumen',
   description: 'Descripción',
   pitchDeck: 'Pitch deck',
+  wordDocument: 'Documento Word',
+  coverImage: 'Portada',
+  driveUrl: 'Link de Google Drive del video',
+  domainUrl: 'Link del dominio desplegado',
 };
 
 export function describeMissingFields(fields: string[]): string {

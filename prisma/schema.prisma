@@ -22,6 +22,7 @@ enum ProjectFileKind {
   PITCH_DECK
   EXTRA
   COVER_IMAGE
+  WORD_DOCUMENT
 }
 
 model User {
