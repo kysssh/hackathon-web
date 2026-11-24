@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
 const PROJECT_SECTIONS = [
   { id: 'details', label: 'Datos del proyecto' },
   { id: 'word', label: 'Documento Word' },
-  { id: 'pitch', label: 'Pitch deck' },
+  { id: 'pitch', label: 'Presentación' },
   { id: 'cover', label: 'Portada' },
   { id: 'extra', label: 'Archivos extra' },
   { id: 'submit', label: 'Enviar proyecto' },
@@ -139,7 +139,7 @@ export default async function ProyectoPage({
 
       {activePhase !== 'PHASE_1' && activePhase !== 'FINAL' && (!section || section === 'pitch') && (
         <section>
-          <h2 className="mb-3 font-medium">Presentación / pitch deck</h2>
+          <h2 className="mb-3 font-medium">Presentación</h2>
           <FileUploader kind="PITCH_DECK" project={project} storage={storage} />
         </section>
       )}

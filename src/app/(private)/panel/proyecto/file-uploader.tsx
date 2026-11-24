@@ -30,7 +30,7 @@ import {
 
 const KIND_LABEL: Record<ProjectFileKind, string> = {
   WORD_DOCUMENT: 'Documento Word',
-  PITCH_DECK: 'Pitch deck',
+  PITCH_DECK: 'Presentación',
   COVER_IMAGE: 'Portada',
   EXTRA: 'Archivos extra',
 };
@@ -39,9 +39,9 @@ const KIND_HINT: Record<ProjectFileKind, string> = {
   WORD_DOCUMENT:
     'Documento Word obligatorio en la primera fase. Se acepta DOC o DOCX.',
   PITCH_DECK:
-    'Presentación obligatoria desde la segunda fase. Actualízala para semifinal.',
+    'Presentación obligatoria en fase 2 y semifinal. Sube una versión actualizada para cada fase.',
   COVER_IMAGE:
-    'Imagen principal que representará el proyecto en la galería pública.',
+    'Imagen principal del proyecto. Es obligatoria en fase 1 y debes actualizarla para fase 2 y semifinal.',
   EXTRA: 'Documentos de apoyo opcionales para complementar el proyecto.',
 };
 
@@ -54,7 +54,7 @@ const KIND_FORMATS: Record<ProjectFileKind, string> = {
 
 const KIND_BUTTON: Record<ProjectFileKind, string> = {
   WORD_DOCUMENT: 'Seleccionar documento Word',
-  PITCH_DECK: 'Seleccionar pitch deck (PDF)',
+  PITCH_DECK: 'Seleccionar presentación',
   COVER_IMAGE: 'Seleccionar imagen de portada',
   EXTRA: 'Agregar archivo de apoyo',
 };

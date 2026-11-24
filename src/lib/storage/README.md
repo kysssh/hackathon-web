@@ -8,9 +8,9 @@ Implementadas las acciones createUploadUrlAction, confirmUploadAction, deletePro
 2. Pedir createUploadUrlAction({ kind, fileName, contentType, sizeBytes }).
 3. Subir directamente desde el navegador con el bucket, storagePath y token devueltos, usando uploadToSignedUrl y sin sobrescritura. Los archivos no viajan dentro de una Server Action.
 4. Confirmar con los mismos metadatos y storagePath. La ruta es opaca y firmada; no se debe modificar.
-5. Mostrar los errores del contrato. Se admite un PITCH_DECK, una COVER_IMAGE y cinco EXTRA. Para reemplazar un archivo unico, eliminar primero el anterior.
+5. Mostrar los errores del contrato. Se admite un documento Word en fase 1, una presentación y una portada por fase 2 y semifinal, y hasta cinco EXTRA opcionales. Para reemplazar un archivo único, eliminar primero el anterior.
 
-El envio requiere lider, el minimo configurado de cuatro integrantes, titulo, resumen, descripcion, pitch confirmado y plazo abierto. Cada reenvio incrementa submissionCount.
+Cada envío requiere líder, el mínimo configurado de cuatro integrantes, datos del proyecto y los archivos/enlaces obligatorios de la fase activa. Cada reenvío incrementa submissionCount.
 
 La evaluacion requiere rol JUDGE y proyecto enviado y visible. Se comprueba el cierre despues del bloqueo. El upsert guarda una sola fila por proyecto y jurado. El resultado ponderado se calcula con las notas guardadas y pesos 25/30/25/20; el esquema no tiene una columna de promedio.
 

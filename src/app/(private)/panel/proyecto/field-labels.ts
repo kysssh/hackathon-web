@@ -3,7 +3,7 @@ export const MISSING_FIELD_LABELS: Record<string, string> = {
   title: 'Título',
   summary: 'Resumen',
   description: 'Descripción',
-  pitchDeck: 'Pitch deck',
+  pitchDeck: 'Presentación',
   wordDocument: 'Documento Word',
   coverImage: 'Portada',
   driveUrl: 'Link de Google Drive del video',
