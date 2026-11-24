@@ -29,26 +29,31 @@ import {
 } from './storage-upload';
 
 const KIND_LABEL: Record<ProjectFileKind, string> = {
+  WORD_DOCUMENT: 'Documento Word',
   PITCH_DECK: 'Pitch deck',
   COVER_IMAGE: 'Portada',
   EXTRA: 'Archivos extra',
 };
 
 const KIND_HINT: Record<ProjectFileKind, string> = {
+  WORD_DOCUMENT:
+    'Documento Word obligatorio en la primera fase. Se acepta DOC o DOCX.',
   PITCH_DECK:
-    'Presentación del proyecto: explica el problema, la solución y cómo funciona. Es obligatorio para enviar.',
+    'Presentación obligatoria desde la segunda fase. Actualízala para semifinal.',
   COVER_IMAGE:
     'Imagen principal que representará el proyecto en la galería pública.',
   EXTRA: 'Documentos de apoyo opcionales para complementar el proyecto.',
 };
 
 const KIND_FORMATS: Record<ProjectFileKind, string> = {
-  PITCH_DECK: 'PDF',
+  WORD_DOCUMENT: 'DOC o DOCX',
+  PITCH_DECK: 'PDF, PPT o PPTX',
   COVER_IMAGE: 'PNG, JPG o WEBP',
   EXTRA: 'PDF, ZIP, PNG o JPG',
 };
 
 const KIND_BUTTON: Record<ProjectFileKind, string> = {
+  WORD_DOCUMENT: 'Seleccionar documento Word',
   PITCH_DECK: 'Seleccionar pitch deck (PDF)',
   COVER_IMAGE: 'Seleccionar imagen de portada',
   EXTRA: 'Agregar archivo de apoyo',

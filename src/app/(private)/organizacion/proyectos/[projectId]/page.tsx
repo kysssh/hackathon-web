@@ -19,6 +19,7 @@ import { WinnerTitleForm } from './winner-title-form';
 export const dynamic = 'force-dynamic';
 
 const KIND_LABEL: Record<ProjectFileKind, string> = {
+  WORD_DOCUMENT: 'Documento Word',
   PITCH_DECK: 'Pitch deck',
   COVER_IMAGE: 'Portada',
   EXTRA: 'Extra',

@@ -13,7 +13,9 @@ import {
 } from '@/lib/files/rules';
 import {
   computeMissingFields,
+  getEventPhase,
   getSubmissionWindow,
+  isValidDriveUrl,
   slugify,
 } from '@/lib/project/rules';
 import {
@@ -57,6 +59,43 @@ describe('Reglas de Equipos (Team Rules)', () => {
 });
 
 describe('Reglas del Proyecto (Project Rules)', () => {
+  it('clasifica las fechas en las fases oficiales', () => {
+    assert.equal(getEventPhase('2026-12-05T12:00:00-05:00'), 'PHASE_1');
+    assert.equal(getEventPhase('2026-12-07T12:00:00-05:00'), 'PHASE_2');
+    assert.equal(getEventPhase('2026-12-09T12:00:00-05:00'), 'SEMIFINAL');
+    assert.equal(getEventPhase('2026-12-11T12:00:00-05:00'), 'FINAL');
+  });
+
+  it('exige Word y portada en la primera fase', () => {
+    const missing = computeMissingFields({
+      title: 'Proyecto',
+      summary: 'Resumen',
+      description: 'Descripción',
+      phase: 'PHASE_1',
+      hasWordDocument: false,
+      hasCoverImage: false,
+    });
+    assert.deepEqual(missing, ['wordDocument', 'coverImage']);
+  });
+
+  it('exige presentación actualizada y Drive en la segunda fase', () => {
+    const missing = computeMissingFields({
+      title: 'Proyecto',
+      summary: 'Resumen',
+      description: 'Descripción',
+      phase: 'PHASE_2',
+      hasUpdatedPitchDeck: true,
+      hasUpdatedCoverImage: true,
+      videoUrl: 'https://drive.google.com/file/d/demo/view',
+    });
+    assert.deepEqual(missing, []);
+  });
+
+  it('valida enlaces de Drive de Google', () => {
+    assert.equal(isValidDriveUrl('https://drive.google.com/file/d/demo/view'), true);
+    assert.equal(isValidDriveUrl('https://example.com/video'), false);
+  });
+
   it('convierte nombres a slugs limpios para la URL de galería', () => {
     assert.equal(slugify('Byte Force'), 'byte-force');
     assert.equal(slugify('¡Innovación & Cultura!'), 'innovacion-cultura');
@@ -68,15 +107,19 @@ describe('Reglas del Proyecto (Project Rules)', () => {
       title: '',
       summary: '',
       description: '',
-      hasPitchDeck: false,
+      phase: 'PHASE_1',
+      hasWordDocument: false,
+      hasCoverImage: false,
     });
-    assert.deepEqual(empty, ['title', 'summary', 'description', 'pitchDeck']);
+    assert.deepEqual(empty, ['title', 'summary', 'description', 'wordDocument', 'coverImage']);
 
     const complete = computeMissingFields({
       title: 'Plataforma Virtual',
       summary: 'Resumen conciso del proyecto.',
       description: 'Descripción completa detallando el valor del proyecto...',
-      hasPitchDeck: true,
+      phase: 'PHASE_1',
+      hasWordDocument: true,
+      hasCoverImage: true,
     });
     assert.deepEqual(complete, []);
   });
@@ -88,7 +131,7 @@ describe('Reglas del Proyecto (Project Rules)', () => {
     const during = getSubmissionWindow('2026-12-06T12:00:00-05:00');
     assert.equal(during.status, 'OPEN');
 
-    const after = getSubmissionWindow('2026-12-09T00:00:00-05:00');
+    const after = getSubmissionWindow('2026-12-13T00:00:00-05:00');
     assert.equal(after.status, 'CLOSED');
   });
 });

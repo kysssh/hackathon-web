@@ -6,6 +6,7 @@ import { eventConfig } from '@/config/event';
 import { getCurrentUser } from '@/lib/auth/session';
 import { db } from '@/lib/db';
 import { displayName } from '@/lib/profile/rules';
+import { computeMissingFields, getEventPhase } from '@/lib/project/rules';
 import type {
   GalleryFilter,
   GalleryProjectCardDto,
@@ -63,12 +64,28 @@ export async function getMyProject(): Promise<ProjectDto | null> {
   const project = membership?.team.project;
   if (!project) return null;
 
+  const wordDocument = project.files.find((file) => file.kind === 'WORD_DOCUMENT');
   const pitchDeck = project.files.find((file) => file.kind === 'PITCH_DECK');
   const coverImage = project.files.find((file) => file.kind === 'COVER_IMAGE');
   const serverNowIso = serverNow();
   const now = new Date(serverNowIso);
+  const activePhase = getEventPhase(serverNowIso);
   const opensAt = new Date(eventConfig.dates.submissionOpensAt);
   const closesAt = new Date(eventConfig.dates.submissionClosesAt);
+  const phaseTwoStartsAt = new Date(eventConfig.dates.phaseOneClosesAt);
+  const semifinalStartsAt = new Date(eventConfig.dates.phaseTwoClosesAt);
+  const pitchDeckUpdatedAtPhase =
+    activePhase === 'PHASE_2'
+      ? pitchDeck && pitchDeck.createdAt >= phaseTwoStartsAt
+      : activePhase === 'SEMIFINAL'
+        ? pitchDeck && pitchDeck.createdAt >= semifinalStartsAt
+        : false;
+  const coverUpdatedAtPhase =
+    activePhase === 'PHASE_2'
+      ? coverImage && coverImage.createdAt >= phaseTwoStartsAt
+      : activePhase === 'SEMIFINAL'
+        ? coverImage && coverImage.createdAt >= semifinalStartsAt
+        : false;
 
   return {
     id: project.id,
@@ -84,6 +101,7 @@ export async function getMyProject(): Promise<ProjectDto | null> {
       : null,
     submittedAt: project.submittedAt?.toISOString() ?? null,
     submissionCount: project.submissionCount,
+    activePhase,
     files: project.files.map((file) => ({
       id: file.id,
       kind: file.kind,
@@ -91,7 +109,15 @@ export async function getMyProject(): Promise<ProjectDto | null> {
       sizeBytes: file.sizeBytes,
       uploadedAt: file.createdAt.toISOString(),
     })),
-    missingFields: getMissingFields(project, Boolean(pitchDeck)),
+    missingFields: computeMissingFields({
+      ...project,
+      phase: activePhase,
+      hasWordDocument: Boolean(wordDocument),
+      hasPitchDeck: Boolean(pitchDeck),
+      hasCoverImage: Boolean(coverImage),
+      hasUpdatedPitchDeck: Boolean(pitchDeckUpdatedAtPhase),
+      hasUpdatedCoverImage: Boolean(coverUpdatedAtPhase),
+    }),
     submissionWindow: {
       status: now < opensAt ? 'NOT_OPEN' : now > closesAt ? 'CLOSED' : 'OPEN',
       opensAt: opensAt.toISOString(),

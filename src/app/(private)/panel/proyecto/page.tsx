@@ -8,6 +8,8 @@ import { BackToPanel } from '@/components/private/back-to-panel';
 import { getMyProject } from '@/lib/project/queries';
 import { getMyTeam } from '@/lib/team/queries';
 import { requireUserWithProfile } from '@/lib/auth/session';
+import { serverNow } from '@/clock';
+import { getEventPhase } from '@/lib/project/rules';
 
 import { DraftForm } from './draft-form';
 import { FileUploader } from './file-uploader';
@@ -17,6 +19,7 @@ export const dynamic = 'force-dynamic';
 
 const PROJECT_SECTIONS = [
   { id: 'details', label: 'Datos del proyecto' },
+  { id: 'word', label: 'Documento Word' },
   { id: 'pitch', label: 'Pitch deck' },
   { id: 'cover', label: 'Portada' },
   { id: 'extra', label: 'Archivos extra' },
@@ -43,6 +46,7 @@ export default async function ProyectoPage({
   const section = isProjectSection(params.section) ? params.section : null;
   const user = await requireUserWithProfile();
   const [project, team] = await Promise.all([getMyProject(), getMyTeam()]);
+  const activePhase = getEventPhase(serverNow());
 
   // La URL del proyecto de Supabase y la llave *publicable* son públicas por
   // diseño (la secreta SUPABASE_SECRET_KEY nunca sale del servidor). El navegador
@@ -98,7 +102,12 @@ export default async function ProyectoPage({
       {!section && project && <DeadlineBanner />}
 
       <nav aria-label="Secciones del proyecto" className="flex flex-wrap gap-2">
-        {PROJECT_SECTIONS.map((item) => (
+        {PROJECT_SECTIONS.filter((item) => {
+          if (activePhase === 'FINAL') return item.id === 'details';
+          if (activePhase === 'PHASE_1')
+            return item.id === 'details' || item.id === 'word' || item.id === 'cover' || item.id === 'extra' || item.id === 'submit';
+          return item.id === 'details' || item.id === 'pitch' || item.id === 'cover' || item.id === 'extra' || item.id === 'submit';
+        }).map((item) => (
           <Link
             key={item.id}
             href={`/panel/proyecto?section=${item.id}`}
@@ -117,18 +126,25 @@ export default async function ProyectoPage({
       {(!section || section === 'details') && (
         <section>
           <h2 className="mb-3 font-medium">Datos del proyecto</h2>
-          <DraftForm project={project} />
+          <DraftForm project={project} activePhase={activePhase} />
         </section>
       )}
 
-      {(!section || section === 'pitch') && (
+      {activePhase === 'PHASE_1' && (!section || section === 'word') && (
         <section>
-          <h2 className="mb-3 font-medium">Pitch deck</h2>
+          <h2 className="mb-3 font-medium">Documento Word</h2>
+          <FileUploader kind="WORD_DOCUMENT" project={project} storage={storage} />
+        </section>
+      )}
+
+      {activePhase !== 'PHASE_1' && activePhase !== 'FINAL' && (!section || section === 'pitch') && (
+        <section>
+          <h2 className="mb-3 font-medium">Presentación / pitch deck</h2>
           <FileUploader kind="PITCH_DECK" project={project} storage={storage} />
         </section>
       )}
 
-      {(!section || section === 'cover') && (
+      {activePhase !== 'FINAL' && (!section || section === 'cover') && (
         <section>
           <h2 className="mb-3 font-medium">Portada</h2>
           <FileUploader
@@ -139,14 +155,14 @@ export default async function ProyectoPage({
         </section>
       )}
 
-      {(!section || section === 'extra') && (
+      {activePhase !== 'FINAL' && (!section || section === 'extra') && (
         <section>
           <h2 className="mb-3 font-medium">Archivos extra</h2>
           <FileUploader kind="EXTRA" project={project} storage={storage} />
         </section>
       )}
 
-      {project && (!section || section === 'submit') && (
+      {activePhase !== 'FINAL' && project && (!section || section === 'submit') && (
         <section>
           <h2 className="mb-3 font-medium">Enviar</h2>
           <SubmitPanel project={project} isTeamLeader={user.isTeamLeader} />

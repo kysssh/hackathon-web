@@ -6,7 +6,7 @@ import { createAction } from '@/actions';
 import { serverNow } from '@/clock';
 import { ActionError } from '@/errors';
 import { db } from '@/lib/db';
-import { getSubmissionWindow } from '@/lib/project/rules';
+import { getEventPhase, getSubmissionWindow } from '@/lib/project/rules';
 import {
   createSignedUpload,
   getStoredFile,
@@ -22,7 +22,7 @@ import {
 import { normalizeContentType } from './mime';
 
 const uploadRequestSchema = z.object({
-  kind: z.enum(['PITCH_DECK', 'EXTRA', 'COVER_IMAGE']),
+  kind: z.enum(['PITCH_DECK', 'EXTRA', 'COVER_IMAGE', 'WORD_DOCUMENT']),
   fileName: z.string().trim().min(1).max(200),
   // Se guarda el tipo canónico (p. ej. application/x-zip-compressed → application/zip).
   contentType: z.string().max(100).transform(normalizeContentType).pipe(z.string().min(1)),
@@ -32,6 +32,17 @@ const uploadRequestSchema = z.object({
 function assertEditable() {
   if (getSubmissionWindow(serverNow()).status === 'CLOSED')
     throw new ActionError('SUBMISSION_CLOSED');
+}
+
+function assertPhaseKind(kind: z.infer<typeof uploadRequestSchema>['kind']) {
+  const phase = getEventPhase(serverNow());
+  const allowed =
+    phase === 'PHASE_1'
+      ? kind === 'WORD_DOCUMENT' || kind === 'COVER_IMAGE' || kind === 'EXTRA'
+      : phase === 'PHASE_2' || phase === 'SEMIFINAL'
+        ? kind === 'PITCH_DECK' || kind === 'COVER_IMAGE' || kind === 'EXTRA'
+        : false;
+  if (!allowed) throw new ActionError('SUBMISSION_CLOSED');
 }
 
 async function myProject(teamId: string | null) {
@@ -53,6 +64,7 @@ export const createUploadUrlAction = createAction(
   uploadRequestSchema,
   async (input, user) => {
     assertEditable();
+    assertPhaseKind(input.kind);
     validateFile(input);
     const project = await myProject(user.teamId);
     const count = await db.projectFile.count({
@@ -71,6 +83,7 @@ export const confirmUploadAction = createAction(
   uploadRequestSchema.extend({ storagePath: z.string().min(1).max(500) }),
   async (input, user) => {
     assertEditable();
+    assertPhaseKind(input.kind);
     validateFile(input);
     const project = await myProject(user.teamId);
     assertStoragePath(project.id, input, input.storagePath);
@@ -89,6 +102,7 @@ export const confirmUploadAction = createAction(
       // El mismo bloqueo se usa al enviar: confirmar y enviar no pueden intercalarse.
       await tx.$queryRaw`SELECT id FROM projects WHERE id = ${project.id} FOR UPDATE`;
       assertEditable();
+      assertPhaseKind(input.kind);
       const existing = await tx.projectFile.findFirst({
         where: { projectId: project.id, storagePath: input.storagePath },
       });
