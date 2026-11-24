@@ -40,6 +40,19 @@ export function isValidDomainUrl(value: string | null | undefined): boolean {
   }
 }
 
+export function isValidGitHubUrl(value: string | null | undefined): boolean {
+  if (!value?.trim()) return false;
+  try {
+    const url = new URL(value);
+    return (
+      (url.protocol === 'https:' || url.protocol === 'http:') &&
+      (url.hostname === 'github.com' || url.hostname === 'www.github.com')
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Qué le falta al proyecto para poder enviarse. Son nombres del contrato (ProjectDto.missingFields):
  * 'title' · 'summary' · 'description' · 'pitchDeck'
@@ -48,6 +61,7 @@ export function computeMissingFields(project: {
   title: string;
   summary: string;
   description: string;
+  repositoryUrl?: string | null;
   videoUrl?: string | null;
   demoUrl?: string | null;
   hasWordDocument?: boolean;
@@ -76,6 +90,7 @@ export function computeMissingFields(project: {
     if (!project.hasUpdatedPitchDeck) missing.push('pitchDeck');
     if (!project.hasUpdatedCoverImage) missing.push('coverImage');
     if (!isValidDomainUrl(project.demoUrl)) missing.push('domainUrl');
+    if (!isValidGitHubUrl(project.repositoryUrl)) missing.push('githubUrl');
   }
   return missing;
 }
